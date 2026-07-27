@@ -1,0 +1,23 @@
+{
+  "entry": [
+    {
+      "changes": [
+        {
+          "value": {
+            "contacts": [
+              {"profile": {"name": "Cliente Prueba"}, "wa_id": "573001234567"}
+            ],
+            "messages": [
+              {
+                "from": "573001234567",
+                "id": "wamid.TEST001",
+                "type": "text",
+                "text": {"body": "Hola, quiero info de San Andrés"}
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
