@@ -34,7 +34,7 @@ def _validar_checksum(payload):
     cadena = ""
     for prop_path in properties:
         valor = data
-        for parte in prop_path.split(".")[1:]:  # ej. "transaction.id" -> ["id"]
+        for parte in prop_path.split("."):  # SIN el [1:] — recorre TODO el path completo
             valor = valor.get(parte) if isinstance(valor, dict) else None
         cadena += str(valor) if valor is not None else ""
 
@@ -42,9 +42,7 @@ def _validar_checksum(payload):
     cadena += os.environ["WOMPI_EVENTS_SECRET"]
 
     checksum_calculado = hashlib.sha256(cadena.encode()).hexdigest()
-    # comparación segura contra timing attacks
     return hmac.compare_digest(checksum_calculado, checksum_recibido)
-
 
 @csrf_exempt
 @require_POST
