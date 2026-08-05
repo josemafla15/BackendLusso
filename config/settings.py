@@ -188,8 +188,10 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Next.js panel de asesores
-    "http://localhost:3001",  # Next.js sitio público
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://lussotravel.co",
+    "https://www.lussotravel.co",
 ]
 # En producción se agrega el dominio real del panel vía env var:
 if os.environ.get("DASHBOARD_ORIGIN"):
