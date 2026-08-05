@@ -3,7 +3,11 @@ import uuid
 
 from django.db import models
 
-from cotizaciones.models import Cotizacion
+from leads.models import Lead
+
+
+def generar_referencia():
+    return f"LUSSO-{secrets.token_hex(4).upper()}"
 
 
 def generar_token():
@@ -20,15 +24,24 @@ class Pago(models.Model):
         ERROR = "error", "Error"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    cotizacion = models.ForeignKey(Cotizacion, on_delete=models.PROTECT, related_name="pagos")
+    lead = models.ForeignKey(Lead, null=True, blank=True, on_delete=models.SET_NULL, related_name="pagos")
+
+    cliente_nombre = models.TextField()
+    cliente_contacto = models.TextField()
+    destino = models.TextField(default="")
+    descripcion = models.TextField(blank=True, default="")
+
+    monto = models.DecimalField(max_digits=12, decimal_places=0)
+    metodo_pago = models.TextField(null=True, blank=True)
+
     token = models.TextField(unique=True, default=generar_token)
-    monto = models.DecimalField(max_digits=12, decimal_places=0)  # congelado al crear
-    metodo_pago = models.TextField(null=True, blank=True)  # CARD, NEQUI, PSE...
+    referencia = models.TextField(unique=True, default=generar_referencia)
+
     estado = models.TextField(choices=Estado.choices, default=Estado.PENDIENTE)
     wompi_transaction_id = models.TextField(null=True, blank=True, unique=True)
-    referencia = models.TextField(unique=True, null=True, blank=True)
     webhook_payload = models.JSONField(null=True, blank=True)
     expira_en = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -39,4 +52,4 @@ class Pago(models.Model):
         verbose_name_plural = "Pagos"
 
     def __str__(self):
-        return f"{self.monto} COP — {self.get_estado_display()}"
+        return f"{self.cliente_nombre} — {self.destino}"

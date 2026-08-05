@@ -9,9 +9,11 @@ router.register("leads", views.LeadViewSet)
 router.register("cotizaciones", views.CotizacionViewSet)
 router.register("pagos", views.PagoViewSet)
 
+
 urlpatterns = [
     path("auth/login/", views.LoginView.as_view(), name="api_login"),
     path("auth/refresh/", TokenRefreshView.as_view(), name="api_refresh"),
     path("me/", views.me, name="api_me"),
     path("", include(router.urls)),
+    
 ]

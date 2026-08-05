@@ -31,7 +31,7 @@ class LeadListSerializer(serializers.ModelSerializer):
             "destino_interes", "mensaje", "datos_viaje", "asesor", "bot_activo",
             "created_at", "updated_at", "ultimo_mensaje",
         ]
-        
+
     def get_ultimo_mensaje(self, obj):
         m = obj.mensajes.exclude(rol=Mensaje.Rol.SISTEMA).order_by("-created_at").first()
         if not m:
@@ -76,13 +76,22 @@ class CotizacionSerializer(serializers.ModelSerializer):
 
 
 class PagoSerializer(serializers.ModelSerializer):
-    cotizacion_destino = serializers.CharField(source="cotizacion.destino", read_only=True)
-    lead_nombre = serializers.CharField(source="cotizacion.lead.nombre", read_only=True)
+    lead_nombre = serializers.CharField(source="lead.nombre", read_only=True, default=None)
+    link_pago = serializers.SerializerMethodField()
 
     class Meta:
         model = Pago
         fields = [
-            "id", "cotizacion", "cotizacion_destino", "lead_nombre",
-            "monto", "estado", "metodo_pago", "referencia",
-            "wompi_transaction_id", "expira_en", "created_at", "updated_at",
+            "id", "lead", "lead_nombre", "cliente_nombre", "cliente_contacto",
+            "destino", "descripcion", "monto", "metodo_pago", "token", "referencia",
+            "estado", "wompi_transaction_id", "link_pago", "created_at", "updated_at",
         ]
+        read_only_fields = [
+            "id", "token", "referencia", "estado", "wompi_transaction_id",
+            "created_at", "updated_at",
+        ]
+
+    def get_link_pago(self, obj):
+        import os
+        base = os.environ.get("SITE_URL", "")
+        return f"{base}/pago/{obj.token}"

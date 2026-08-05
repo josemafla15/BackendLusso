@@ -23,13 +23,13 @@ class LoginThrottle(AnonRateThrottle):
 
 
 class LoginView(TokenObtainPairView):
-    """POST /api/auth/login/ — email/username + password → access + refresh."""
+    """POST /api/auth/login/ — username + password → access + refresh."""
     throttle_classes = [LoginThrottle]
 
 
 @api_view(["GET"])
 def me(request):
-    """GET /api/me/ — el usuario autenticado (para el frontend al cargar)."""
+    """GET /api/me/ — el usuario autenticado."""
     return Response(UserSerializer(request.user).data)
 
 
@@ -38,7 +38,7 @@ class LeadViewSet(viewsets.ModelViewSet):
     filterset_fields = ["origen", "estado", "asesor"]
     search_fields = ["nombre", "contacto", "telefono", "destino_interes"]
     ordering_fields = ["created_at", "updated_at"]
-    http_method_names = ["get", "patch", "head", "options"]  # sin crear ni borrar desde la API
+    http_method_names = ["get", "patch", "head", "options"]
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -57,9 +57,11 @@ class CotizacionViewSet(viewsets.ModelViewSet):
         serializer.save(asesor=self.request.user)
 
 
-class PagoViewSet(viewsets.ReadOnlyModelViewSet):
-    """Solo lectura: los pagos los crea/actualiza el sistema (Wompi), no el dashboard."""
-    queryset = Pago.objects.all().select_related("cotizacion", "cotizacion__lead").order_by("-created_at")
+class PagoViewSet(viewsets.ModelViewSet):
+    """El asesor puede crear pagos desde el dashboard (GET/POST).
+    No se editan ni borran: el estado lo actualiza únicamente el webhook de Wompi."""
+    queryset = Pago.objects.all().select_related("lead").order_by("-created_at")
     serializer_class = PagoSerializer
-    filterset_fields = ["estado", "metodo_pago"]
-    search_fields = ["referencia", "wompi_transaction_id", "cotizacion__lead__nombre"]
+    filterset_fields = ["estado", "metodo_pago", "lead"]
+    search_fields = ["referencia", "wompi_transaction_id", "cliente_nombre", "descripcion"]
+    http_method_names = ["get", "post", "head", "options"]
