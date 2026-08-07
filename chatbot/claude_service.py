@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 from datetime import date
@@ -153,6 +154,35 @@ def _marcar_ultimo_bloque_cacheable(messages):
     return messages
 
 
+def _debug_hash_prefijo(system_blocks, messages):
+    """
+    DIAGNÓSTICO (seguro): calcula un hash del prefijo system+tools y del
+    prefijo completo, tal como se manda a la API. Usa default=str para
+    que nunca reviente si messages contiene objetos del SDK (TextBlock,
+    ToolUseBlock) en vueltas posteriores del bucle de tool use -- y todo
+    el bloque va en un try/except para que un fallo aquí JAMÁS tumbe el
+    envío real del mensaje al cliente.
+    """
+    try:
+        solo_system = json.dumps(
+            {"tools": TOOLS, "system": system_blocks}, sort_keys=True, ensure_ascii=False, default=str
+        )
+        hash_system = hashlib.sha256(solo_system.encode()).hexdigest()[:12]
+
+        completo = json.dumps(
+            {"tools": TOOLS, "system": system_blocks, "messages": messages},
+            sort_keys=True, ensure_ascii=False, default=str,
+        )
+        hash_completo = hashlib.sha256(completo.encode()).hexdigest()[:12]
+
+        logger.info(
+            "DEBUG_PREFIJO hash_tools_system=%s hash_completo=%s num_mensajes=%d largo_system=%d",
+            hash_system, hash_completo, len(messages), len(solo_system),
+        )
+    except Exception:
+        logger.exception("DEBUG_PREFIJO: fallo al calcular hash (no afecta el envío real)")
+
+
 def _log_uso_cache(lead_id, response):
     """
     NUEVO (verificación de caching): llamar justo después de cada
@@ -215,13 +245,16 @@ def responder_mensaje(lead_id):
     for _ in range(5):  # tope de seguridad de iteraciones
         messages = _marcar_ultimo_bloque_cacheable(messages)  # fix de caching
 
+        system_blocks = [
+            {"type": "text", "text": _system_prompt(), "cache_control": {"type": "ephemeral"}},
+            {"type": "text", "text": f"Estado actual de este lead: {lead.estado}."},
+        ]
+        _debug_hash_prefijo(system_blocks, messages)  # diagnóstico temporal (seguro)
+
         response = client.messages.create(
             model=MODELO,
             max_tokens=300,
-            system=[
-                {"type": "text", "text": _system_prompt(), "cache_control": {"type": "ephemeral"}},
-                {"type": "text", "text": f"Estado actual de este lead: {lead.estado}."},
-            ],
+            system=system_blocks,
             tools=TOOLS,
             messages=messages,
         )
