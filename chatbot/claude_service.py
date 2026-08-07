@@ -153,6 +153,34 @@ def _marcar_ultimo_bloque_cacheable(messages):
     return messages
 
 
+import hashlib
+
+
+def _debug_hash_prefijo(system_blocks, messages):
+    """
+    DIAGNÓSTICO: calcula un hash del prefijo exacto (system + tools +
+    mensajes hasta el breakpoint marcado) tal como se lo mandamos a la
+    API, en formato JSON canónico. Si el hash del prefijo COMPARTIDO
+    entre dos llamadas distintas coincide, el cache DEBERÍA dar hit.
+    Si no coincide, esto nos dice que hay una diferencia real de
+    contenido/formato, no solo un problema de configuración.
+
+    Loguea el hash completo Y el hash de "solo tools+system" por
+    separado, para aislar si el problema está en el historial o ya
+    desde el system prompt.
+    """
+    solo_system = json.dumps({"tools": TOOLS, "system": system_blocks}, sort_keys=True, ensure_ascii=False)
+    hash_system = hashlib.sha256(solo_system.encode()).hexdigest()[:12]
+
+    completo = json.dumps({"tools": TOOLS, "system": system_blocks, "messages": messages}, sort_keys=True, ensure_ascii=False)
+    hash_completo = hashlib.sha256(completo.encode()).hexdigest()[:12]
+
+    logger.info(
+        "DEBUG_PREFIJO hash_tools_system=%s hash_completo=%s num_mensajes=%d largo_system=%d",
+        hash_system, hash_completo, len(messages), len(solo_system),
+    )
+
+
 def _log_uso_cache(lead_id, response):
     """
     NUEVO (verificación de caching): llamar justo después de cada
@@ -215,13 +243,16 @@ def responder_mensaje(lead_id):
     for _ in range(5):  # tope de seguridad de iteraciones
         messages = _marcar_ultimo_bloque_cacheable(messages)  # NUEVO: fix de caching
 
+        system_blocks = [
+            {"type": "text", "text": _system_prompt(), "cache_control": {"type": "ephemeral"}},
+            {"type": "text", "text": f"Estado actual de este lead: {lead.estado}."},
+        ]
+        _debug_hash_prefijo(system_blocks, messages)  # NUEVO: diagnóstico temporal
+
         response = client.messages.create(
             model=MODELO,
             max_tokens=300,
-            system=[
-                {"type": "text", "text": _system_prompt(), "cache_control": {"type": "ephemeral"}},
-                {"type": "text", "text": f"Estado actual de este lead: {lead.estado}."},
-            ],
+            system=system_blocks,
             tools=TOOLS,
             messages=messages,
         )
