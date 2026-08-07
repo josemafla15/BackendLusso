@@ -273,7 +273,16 @@ def responder_mensaje(lead_id):
 
 
 def _construir_historial(lead):
-    """Convierte los últimos mensajes de la BD al formato de la API de Claude."""
+    """Convierte los últimos mensajes de la BD al formato de la API de Claude.
+
+    IMPORTANTE para el caching: el contenido de cada mensaje se arma SIEMPRE
+    como lista de bloques (nunca como string plano), aunque solo el último
+    bloque termine llevando cache_control. Si un mensaje se representa como
+    string plano en un turno y como lista de bloques en el siguiente (porque
+    en ese momento era "el último"), el prefijo deja de ser byte-idéntico y
+    Anthropic no reconoce el cache -- eso es lo que estaba pasando antes:
+    cache_write en cada turno, cache_read siempre en 0.
+    """
     mensajes = list(
         lead.mensajes.exclude(rol=Mensaje.Rol.SISTEMA).order_by("-created_at")[:MAX_HISTORIAL]
     )[::-1]
@@ -282,9 +291,10 @@ def _construir_historial(lead):
     for m in mensajes:
         rol = "user" if m.rol == Mensaje.Rol.CLIENTE else "assistant"
         if historial and historial[-1]["role"] == rol:
-            historial[-1]["content"] += f"\n{m.contenido}"
+            # concatenar en el texto del último bloque existente, no en un string aparte
+            historial[-1]["content"][-1]["text"] += f"\n{m.contenido}"
         else:
-            historial.append({"role": rol, "content": m.contenido})
+            historial.append({"role": rol, "content": [{"type": "text", "text": m.contenido}]})
 
     while historial and historial[0]["role"] != "user":
         historial.pop(0)
