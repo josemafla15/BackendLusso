@@ -245,16 +245,18 @@ def responder_mensaje(lead_id):
     for _ in range(5):  # tope de seguridad de iteraciones
         messages = _marcar_ultimo_bloque_cacheable(messages)  # fix de caching
 
-        system_blocks = [
-            {"type": "text", "text": _system_prompt(), "cache_control": {"type": "ephemeral"}},
-            {"type": "text", "text": f"Estado actual de este lead: {lead.estado}."},
-        ]
-        _debug_hash_prefijo(system_blocks, messages)  # diagnóstico temporal (seguro)
-
         response = client.messages.create(
             model=MODELO,
             max_tokens=300,
-            system=system_blocks,
+            system=[
+                # SIN cache_control aquí: un solo breakpoint al final del
+                # historial ya cubre tools + system + mensajes, en ese
+                # orden, hasta el punto marcado. Tener DOS breakpoints
+                # (uno fijo aquí + uno móvil en messages) parecía estar
+                # impidiendo que el cache diera hit entre mensajes.
+                {"type": "text", "text": _system_prompt()},
+                {"type": "text", "text": f"Estado actual de este lead: {lead.estado}."},
+            ],
             tools=TOOLS,
             messages=messages,
         )
