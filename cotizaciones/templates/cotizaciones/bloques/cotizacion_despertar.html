@@ -1,0 +1,130 @@
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página 3 — "Imagina despertar aquí" — Lusso Travel
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino                    -> str
+    cotizacion.descripcion_destino        -> str (párrafo descriptivo)
+    cotizacion.imagen_destino             -> URL (Supabase Storage) foto principal
+    cotizacion.imagen_destino_secundaria  -> URL (Supabase Storage) foto horizontal debajo del texto
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoLargoNegro.png  -> mismo logo oscuro que ya usas en la página 2
+    mancha.png          -> elemento decorativo, esquina inferior izquierda
+-->
+
+<section class="lusso-page lusso-page--despertar">
+
+  <div class="d-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <img class="d-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <h1 class="d-headline">Imagina<br>despertar aquí</h1>
+
+  <p class="d-body">{{ cotizacion.descripcion_destino }}</p>
+
+  <img class="d-mancha" src="{% static 'cotizaciones/assets/mancha.png' %}" alt="">
+
+  <img class="d-photo-secundaria" src="{{ cotizacion.imagen_destino_secundaria }}" alt="">
+
+  <img class="d-photo" src="{{ cotizacion.imagen_destino }}" alt="{{ cotizacion.destino }}">
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--despertar {
+    background: var(--azul-grisaceo);
+  }
+
+  .d-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 800;
+    font-size: 25px;
+    letter-spacing: 0.5px;
+    color: var(--negro-editorial);
+  }
+
+  .d-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .d-headline {
+    position: absolute;
+    top: 190px;
+    left: 68px;
+    width: 800px;
+    font-weight: 900;
+    font-size: 90px;
+    line-height: 0.82;
+    letter-spacing: -7px;
+    color: var(--crema);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .d-body {
+    position: absolute;
+    top: 400px;
+    left: 80px;
+    width: 640px;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.4;
+    letter-spacing: -0.2px;
+    color: var(--negro-editorial);
+    margin: 0;
+  }
+
+  /* Foto principal -- reducida a la mitad del alto (780 -> 390) */
+  .d-photo {
+    position: absolute;
+    top: 180px;
+    right: 100px;
+    width: 800px;
+    height: 750px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  /* Foto secundaria horizontal, debajo de la descripción */
+  .d-photo-secundaria {
+    position: absolute;
+    top: 600px;
+    left: 68px;
+    width: 900px;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  /* Mancha decorativa, esquina inferior izquierda */
+  .d-mancha {
+    position: absolute;
+    bottom: -900px;
+    left: -500px;
+    width: 900px;
+  }
+</style>

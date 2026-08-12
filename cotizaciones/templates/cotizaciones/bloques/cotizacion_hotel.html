@@ -1,0 +1,227 @@
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página(s) de Hotel — Lusso Travel
+
+  IMPORTANTE: este bloque usa un for-loop -- genera UNA página por cada
+  hotel que el asesor haya agregado a la cotización (CotizacionHotel).
+  Si hay 1 hotel, sale 1 página. Si hay 3, salen 3. No hay que tocar
+  código para escalar esto.
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino          -> str
+    cotizacion.hoteles.all      -> queryset de CotizacionHotel, cada uno con:
+        .nombre_display          -> str (del catálogo o nombre_libre)
+        .noches                  -> int
+        .tipo_habitacion         -> str
+        .plan_alimentacion       -> str
+        .hotel.direccion         -> str (si viene del catálogo)
+        .hotel.descripcion       -> str
+        .hotel.horario_restaurante -> str
+        .hotel.imagenes.all      -> queryset de HotelImagen (usamos las primeras 3)
+
+  ASSETS ESTÁTICOS:
+    logoLargoNegro.png       -> logo oscuro (fondo claro)
+    churito.png              -> decorativo, arriba centrado
+-->
+
+{% for h in cotizacion.hoteles.all %}
+<section class="lusso-page lusso-page--hotel">
+
+  <img class="h-churito" src="{% static 'cotizaciones/assets/churito.png' %}" alt="">
+
+  <div class="h-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <img class="h-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <h1 class="h-headline">{{ h.nombre_display }}</h1>
+
+  {% if h.hotel.direccion %}
+    <div class="h-direccion">{{ h.hotel.direccion }}</div>
+  {% endif %}
+
+  <p class="h-descripcion">{{ h.hotel.descripcion }}</p>
+
+  <div class="h-datos">
+    <h2 class="h-datos__titulo">Datos importantes de estadía</h2>
+
+    <div class="h-dato">
+      <span class="h-dato__label">Noches:</span> {{ h.noches }}
+    </div>
+    {% if h.tipo_habitacion %}
+      <div class="h-dato">
+        <span class="h-dato__label">Habitación:</span> {{ h.tipo_habitacion }}
+      </div>
+    {% endif %}
+    {% if h.plan_alimentacion %}
+      <div class="h-dato">
+        <span class="h-dato__label">Alimentación:</span> {{ h.plan_alimentacion }}
+      </div>
+    {% endif %}
+    {% if h.hotel.horario_restaurante %}
+      <div class="h-dato">
+        <span class="h-dato__label">Horario restaurante:</span> {{ h.hotel.horario_restaurante }}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="h-fotos">
+    {% with imgs=h.hotel.imagenes.all %}
+      {% if imgs.0 %}
+        <img class="h-foto h-foto--top" src="{{ imgs.0.url }}" alt="{{ h.nombre_display }}">
+      {% endif %}
+      <div class="h-fotos__row">
+        {% if imgs.1 %}
+          <img class="h-foto h-foto--half" src="{{ imgs.1.url }}" alt="{{ h.nombre_display }}">
+        {% endif %}
+        {% if imgs.2 %}
+          <img class="h-foto h-foto--half" src="{{ imgs.2.url }}" alt="{{ h.nombre_display }}">
+        {% endif %}
+      </div>
+    {% endwith %}
+  </div>
+
+</section>
+{% endfor %}
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--hotel {
+    background: var(--verde-pastel);
+  }
+
+  .h-churito {
+  position: absolute;
+  top: -240px;
+  left: 460px;
+  width: 1400px;
+}
+
+
+
+  .h-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+    color: var(--negro-editorial);
+  }
+
+  .h-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .h-headline {
+    position: absolute;
+    top: 200px;
+    left: 68px;
+    width: 700px;
+    font-weight: 900;
+    font-size: 90px;
+    line-height: 0.95;
+    letter-spacing: -3px;
+    color: var(--negro-editorial);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .h-direccion {
+  position: absolute;
+  top: 400px;
+  left: 68px;
+  width: 900px;
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--negro-editorial);
+  padding-bottom: 6px;
+  
+  
+}
+
+  .h-descripcion {
+    position: absolute;
+    top: 450px;
+    left: 68px;
+    width: 800px;
+    font-weight: 400;
+    font-size: 25px;
+    line-height: 1.3;
+    color: var(--negro-editorial);
+    margin: 0;
+  }
+
+  .h-datos {
+    position: absolute;
+    top: 680px;
+    left: 68px;
+    width: 700px;
+  }
+  .h-datos__titulo {
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--negro-editorial);
+    margin: 0 0 12px 0;
+  }
+  .h-dato {
+    font-weight: 400;
+    font-size: 18px;
+    color: var(--negro-editorial);
+    margin-bottom: 6px;
+  }
+  .h-dato__label {
+    font-weight: 700;
+  }
+
+  /* Foto grande horizontal arriba + 2 fotos a la mitad debajo, lado derecho.
+     Cada pieza tiene su propio 'top' independiente -- cambiar el alto de
+     una NO mueve a la otra automáticamente. */
+  .h-fotos {
+    position: absolute;
+    top: 200px;
+    right: 68px;
+    width: 780px;
+  }
+  .h-foto--top {
+    position: absolute;
+    top: 0;
+    left: -100px;
+    width: 900px;
+    height: 340px;   /* ← cambia solo este alto, la fila de abajo no se mueve sola */
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  .h-fotos__row {
+    position: absolute;
+    top: 400px;   /* ← este número controla dónde empieza la fila de abajo, muévelo tú a mano */
+    left: -100px;
+    display: flex;
+    gap: 60px;
+  }
+  .h-foto--half {
+    width: 420px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+</style>

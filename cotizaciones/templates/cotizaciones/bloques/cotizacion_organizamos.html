@@ -1,0 +1,149 @@
+{% load static %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página 2 — "Así organizamos tu viaje" — Lusso Travel
+  Se incluye dentro del template maestro más adelante (cotizacion_completa.html).
+
+  Esta página es 100% copy de marca fijo (no depende de datos de la
+  cotización), así que no recibe variables de contexto especiales.
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoLargoNegro.png  -> logo Lusso Travel, versión oscura horizontal
+                            (para fondo claro / verde pastel)
+    playa2.png          -> ilustración/foto de elementos de playa
+                            (toalla, sandalias, lentes de sol, limón)
+-->
+
+<section class="lusso-page lusso-page--organizamos">
+
+  <img class="o-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <h1 class="o-headline">Así<br>organizamos<br>tu viaje</h1>
+
+  <p class="o-body">
+    Empieza cuando imaginas caminar por calles desconocidas. Cuando sueñas
+    con probar sabores nuevos. Cuando te preguntas cómo se verá ese paisaje
+    que has guardado tantas veces en Pinterest. Nosotros nos encargamos de
+    que cumplas tu sueño.
+  </p>
+
+  <div class="o-lists">
+    <ul class="o-list">
+      <li>Tu destino</li>
+      <li>Qué visitar</li>
+      <li>Experiencia</li>
+      <li>Inversión</li>
+    </ul>
+    <ul class="o-list">
+      <li>Porqué viajar con nosotros</li>
+    </ul>
+  </div>
+
+  <img class="o-illustration" src="{% static 'cotizaciones/assets/playa2.png' %}" alt="">
+
+</section>
+
+<style>
+  /* ===== Tokens compartidos — ya deberían venir de la portada si están en el mismo documento ===== */
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--organizamos {
+    background: var(--verde-pastel);
+  }
+
+  .o-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .o-headline {
+    position: absolute;
+    top: 143px;
+    left: 68px;
+    width: 700px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 900;
+    font-size: 78px;
+    line-height: 0.92;
+    letter-spacing: -7px;
+    color: var(--negro-editorial);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .o-body {
+    position: absolute;
+    top: 380px;
+    left: 70px;
+    width: 750px;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 0.9;
+    letter-spacing: -0.3px;
+    color: var(--negro-editorial);
+    margin: 0;
+  }
+
+  .o-lists {
+    position: absolute;
+    top: 235px;
+    left: 1020px;
+    display: flex;
+    gap: 90px;
+  }
+  .o-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .o-list li {
+  font-family: 'Poppins', sans-serif;   
+  font-weight: 900;
+  font-size: 45px;
+  line-height: 0.80;
+  letter-spacing: -0.5px;
+  color: var(--negro-editorial);
+  text-transform: uppercase;
+  margin-bottom: 25px;
+  position: relative;
+  padding-left: 32px;
+  max-width: 300px;
+}
+  .o-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--negro-editorial);
+  }
+
+  .o-illustration {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+  }
+</style>

@@ -1,0 +1,134 @@
+{% load static %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página "Creamos esta experiencia solo para ti" — Lusso Travel
+
+  Copy de marca 100% fijo (igual que "Así organizamos tu viaje" y
+  "Tu viaje soñado") -- no varía por cotización. Solo el eyebrow usa
+  el destino dinámico, como en las demás páginas.
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino  -> str
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoLargoNegro.png       -> logo oscuro (fondo claro)
+    caraRedonda.png          -> ilustración decorativa, esquina inferior izquierda
+    swirl_transparente.png   -> mismo asset reutilizado x2: arriba centrado, y esquina inferior derecha
+-->
+
+<section class="lusso-page lusso-page--creamos">
+
+  {% comment %} <div class="c-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div> {% endcomment %}
+  <img class="c-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <img class="c-swirl c-swirl--top" src="{% static 'cotizaciones/assets/swirl_transparente.png' %}" alt="">
+  <img class="c-swirl c-swirl--br" src="{% static 'cotizaciones/assets/swirl_transparente.png' %}" alt="">
+
+  <h1 class="c-headline">Creamos<br>esta experiencia<br>solo para ti</h1>
+
+  <p class="c-body">
+    Pensamos en este viaje porque durante nuestra conversación nos contaste
+    que buscas descansar, desconectarte de la rutina y vivir una experiencia
+    diferente sin preocuparte por la logística.
+  </p>
+
+  <p class="c-body">
+    Por eso seleccionamos hoteles con excelente ubicación, experiencias
+    auténticas y un itinerario equilibrado que te permitirá disfrutar cada
+    momento sin prisas.
+  </p>
+
+  <img class="c-cara" src="{% static 'cotizaciones/assets/caraRedonda.png' %}" alt="">
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--creamos {
+    background: var(--crema);
+  }
+
+  .c-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+    color: var(--negro-editorial);
+  }
+
+  .c-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .c-swirl { position: absolute; }
+  .c-swirl--top {
+    top: -240px;
+    left: 720px;
+    transform: translateX(-50%);
+    width: 800px;
+  }
+  .c-swirl--br {
+    bottom: -710px;
+    right: -420px;
+    width: 800px;
+    transform: rotate(315deg);
+  }
+
+  .c-headline {
+    position: absolute;
+    top: 150px;
+    left: 68px;
+    width: 800px;
+    font-weight: 900;
+    font-size: 87px;
+    line-height: 0.95;
+    letter-spacing: -8px;
+    color: var(--negro-editorial);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .c-body {
+    position: absolute;
+    left: 1000px;
+    width: 650px;
+    font-weight: 450;
+    font-size: 28px;
+    line-height: 1;
+    letter-spacing: -0.2px;
+    color: var(--negro-editorial);
+    margin: 0;
+  }
+  .c-body:nth-of-type(1) { top: 450px; }
+  .c-body:nth-of-type(2) { top: 700px; }
+
+  .c-cara {
+    position: absolute;
+    bottom: -1px;
+    left: 130px;
+    width: 750px;
+  }
+</style>

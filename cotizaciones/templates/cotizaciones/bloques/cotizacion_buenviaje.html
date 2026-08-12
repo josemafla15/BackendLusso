@@ -1,0 +1,149 @@
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página final "Buen viaje" — Lusso Travel
+
+  Cierra el PDF reutilizando destino/fechas (mismos campos que la portada).
+  Los datos de contacto son constantes de marca, no cambian.
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino       -> str
+    cotizacion.fecha_inicio  -> date
+    cotizacion.fecha_fin     -> date
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoApilado.png          -> logo crema (fondo oscuro)
+    swirl_transparente.png   -> decorativo, esquina superior derecha, pegado al borde
+    mancha.png                -> decorativo, esquina inferior derecha (capa de atrás)
+    ventana.png                -> decorativo, esquina inferior derecha (capa de adelante, sobre mancha)
+-->
+
+<section class="lusso-page lusso-page--buenviaje">
+
+  <img class="bv-swirl" src="{% static 'cotizaciones/assets/swirl_transparente.png' %}" alt="">
+  <img class="bv-mancha" src="{% static 'cotizaciones/assets/manchaVolteada.png' %}" alt="">
+  <img class="bv-ventana" src="{% static 'cotizaciones/assets/ventana.png' %}" alt="">
+
+  <img class="bv-logo" src="{% static 'cotizaciones/assets/logoApilado.png' %}" alt="Lusso Travel">
+
+  <div class="bv-dates__range">
+  {{ cotizacion.fecha_inicio|date:"d" }}&ndash;{{ cotizacion.fecha_fin|date:"d" }} de {{ cotizacion.fecha_fin|date:"F, Y" }}
+</div>
+<div class="bv-dates__destino">{{ cotizacion.destino }}</div>
+
+  <h1 class="bv-headline">Buen<br>viaje</h1>
+
+  <div class="bv-contacto">
+    <span>+57 320 550 9589</span>
+    <span>@lussotravelpasto</span>
+    <span>contacto@lussotravel.co</span>
+  </div>
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .lusso-page--buenviaje {
+    background: var(--negro-editorial);
+  }
+
+  .bv-logo {
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    height: 320px;
+  }
+
+  .bv-dates {
+    position: absolute;
+    top: 120px;
+    right: 78px;
+    text-align: right;
+    color: var(--crema);
+    line-height: 1.05;
+  }
+  .bv-dates__range {
+  position: absolute;
+  top: 120px;
+  right: 78px;
+  font-weight: 400;
+  font-size: 32px;
+  color: var(--crema);
+}
+
+.bv-dates__destino {
+  position: absolute;
+  top: 200px;
+  right: 78px;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 36px;
+  color: var(--crema);
+}
+
+  .bv-headline {
+    position: absolute;
+    top: 300px;
+    left: 60px;
+    font-weight: 900;
+    font-size: 250px;
+    line-height: 0.78;
+    letter-spacing: -9px;
+    color: var(--crema);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .bv-contacto {
+    position: absolute;
+    bottom: 90px;
+    left: 68px;
+    display: flex;
+    gap: 300px;
+  }
+  .bv-contacto span {
+    font-weight: 400;
+    font-size: 20px;
+    color: var(--crema);
+  }
+
+  /* Swirl pegado al borde superior derecho */
+  .bv-swirl {
+    position: absolute;
+    top: -280px;
+    right: 70px;
+    width: 700px;
+    transform: rotate(-45deg);
+  }
+
+  /* Mancha detrás de la ventana, esquina inferior derecha */
+  .bv-mancha {
+  position: absolute;
+  bottom: -530px;
+  right: -350px;
+  width: 1100px;
+  
+}
+.bv-ventana {
+  position: absolute;
+  bottom: 150px;
+  right: -100px;
+  width: 800px;
+}
+</style>

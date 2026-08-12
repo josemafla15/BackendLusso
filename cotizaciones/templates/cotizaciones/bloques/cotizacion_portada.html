@@ -1,0 +1,168 @@
+{% load static %}
+<!--
+  BLOQUE: Portada de cotización — Lusso Travel
+  Se incluye dentro del template maestro más adelante (cotizacion_completa.html).
+
+  CONTEXTO ESPERADO (pásalo desde la vista/tarea Celery):
+    cotizacion.destino          -> str, ej: "Coveñas"
+    cotizacion.fecha_inicio     -> date
+    cotizacion.fecha_fin        -> date
+    cotizacion.lead.nombre      -> str
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoApilado.png          -> logo Lusso Travel (versión apilada, crema/blanca)
+    swirl_transparente.png   -> garabato/loop decorativo. Es UN SOLO archivo,
+                                 se reutiliza 2 veces en esta página con rotate
+                                 vía CSS: arriba (inclinado -12°) y abajo-
+                                 derecha (rotado 180°).
+    pasaporte.png             -> ilustración pasaporte/maleta/avión (PNG transparente)
+    textoTransparente.png    -> "TU PRÓXIMA HISTORIA / COMIENZA AQUÍ" ya
+                                 maquetado como imagen fija (copy de marca,
+                                 no editable, para evitar problemas de
+                                 reconstrucción de texto al reimportar a Canva)
+-->
+
+<section class="lusso-page lusso-page--portada">
+
+  <img class="p-logo-mark" src="{% static 'cotizaciones/assets/logoApilado.png' %}" alt="Lusso Travel">
+
+  <div class="p-dates">
+    <div class="p-dates__range">
+      {{ cotizacion.fecha_inicio|date:"d" }}&ndash;{{ cotizacion.fecha_fin|date:"d" }} de {{ cotizacion.fecha_fin|date:"F, Y" }}
+    </div>
+    <div class="p-dates__lead">{{ cotizacion.lead.nombre }}</div>
+    <div class="p-dates__destino">{{ cotizacion.destino }}</div>
+  </div>
+
+  <!-- swirl_transparente.png reutilizado x2: mismo archivo, distinta orientación por CSS -->
+  <img class="p-doodle p-doodle--top" src="{% static 'cotizaciones/assets/swirl_transparente.png' %}" alt="">
+  <img class="p-doodle p-doodle--br" src="{% static 'cotizaciones/assets/swirl_transparente.png' %}" alt="">
+
+  <img class="p-headline-img" src="{% static 'cotizaciones/assets/textoTransparente.png' %}" alt="Tu próxima historia comienza aquí">
+
+  <img class="p-illustration" src="{% static 'cotizaciones/assets/pasaporte.png' %}" alt="">
+
+  <div class="p-footer">
+    <p class="p-footer__lead">Este paquete fue creado especialmente para ti por Lusso Travel.</p>
+    <p class="p-footer__body">
+      Viajar es una de las pocas cosas que compramos y nos devuelve algo más valioso que el
+      dinero: recuerdos. Y algunos recuerdos permanecen para siempre.
+    </p>
+  </div>
+
+</section>
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #212222;
+  }
+
+  /* ===== Tokens compartidos — mover a un archivo base.css incluido una sola vez ===== */
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always; /* clave para que Playwright separe cada sección en su propia página del PDF */
+  }
+
+  .lusso-page--portada {
+    background: var(--negro-editorial);
+  }
+
+  /* ---------- Logo ---------- */
+  .p-logo-mark {
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    height: 300px;
+  }
+
+  /* ---------- Fechas ---------- */
+  .p-dates {
+    position: absolute;
+    top: 78px;
+    right: 78px;
+    text-align: right;
+    color: var(--crema);
+    line-height: 1.05;
+  }
+  .p-dates__range {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 32px;
+  }
+  .p-dates__lead {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 24px;
+    margin-top: 4px;
+  }
+  .p-dates__destino {
+    font-family: 'Poppins', sans-serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 37px;
+    margin-top: -4px;
+  }
+
+  /* ---------- Doodles (mismo swirl_transparente.png, reorientado por instancia) ---------- */
+  /* Solo 2 instancias: arriba (inclinado) y abajo-derecha (rotado 180°) */
+  .p-doodle { position: absolute; }
+  .p-doodle--top { top: -200px; right: 480px; width: 800px; transform: rotate(-12deg); }
+  .p-doodle--br  { bottom: -700px; right: -450px; width: 800px; transform: rotate(-50deg); }
+
+  /* ---------- Headline (ahora imagen fija, ver textoTransparente.png) ---------- */
+  .p-headline-img {
+    position: absolute;
+    top: 100px;
+    left: 20px;
+    width: 900px;   /* ← ajusta a ojo hasta que calce con el tamaño que tenías */
+  }
+
+  /* ---------- Ilustración ---------- */
+  .p-illustration {
+    position: absolute;
+    top: 250px;
+    right: 220px;
+    width: 700px;
+  }
+
+  /* ---------- Footer ---------- */
+  .p-footer {
+    position: absolute;
+    bottom: 96px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    text-align: center;
+    color: var(--crema);
+  }
+  .p-footer__lead {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.3px;
+    margin: 0 0 2px 0;
+    color: rgba(255,246,244,0.80);
+  }
+  .p-footer__body {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+    letter-spacing: -0.2px;
+    color: rgba(255,246,244,0.70);
+    line-height: 1.4;
+    margin: 0;
+  }
+</style>

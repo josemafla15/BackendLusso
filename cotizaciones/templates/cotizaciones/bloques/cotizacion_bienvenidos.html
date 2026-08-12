@@ -1,0 +1,118 @@
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página 4 — "Bienvenidos a [destino]" — Lusso Travel
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino               -> str
+    cotizacion.bienvenida_descripcion -> str (párrafo descriptivo)
+    cotizacion.imagen_bienvenida      -> URL (Supabase Storage) foto grande
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoApilado.png  -> logo crema/blanco (fondo oscuro), mismo de la portada
+    medusa.png       -> decorativo, tope superior, centrado
+-->
+
+<section class="lusso-page lusso-page--bienvenidos">
+
+  <img class="b-medusa" src="{% static 'cotizaciones/assets/medusa.png' %}" alt="">
+
+  <div class="b-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <img class="b-logo" src="{% static 'cotizaciones/assets/logoLargoBlanco.png' %}" alt="Lusso Travel">
+
+  <h1 class="b-headline">Bienvenidos a<br>{{ cotizacion.destino }}</h1>
+
+  <p class="b-body">{{ cotizacion.bienvenida_descripcion }}</p>
+
+  <img class="b-photo" src="{{ cotizacion.imagen_bienvenida }}" alt="{{ cotizacion.destino }}">
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--bienvenidos {
+    background: var(--negro-editorial);
+  }
+
+  .b-medusa {
+    position: absolute;
+    top: -470px;
+    left: 140px;
+    {% comment %} transform: translateX(-50%); {% endcomment %}
+    width: 2000px;
+  }
+
+  .b-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 800;
+    font-size: 25px;
+    letter-spacing: 0.5px;
+    color: var(--crema);
+  }
+
+  .b-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .b-headline {
+    position: absolute;
+    top: 220px;
+    left: 68px;
+    width: 800px;
+    font-weight: 700;
+    font-size: 110px;
+    line-height: 0.9;
+    letter-spacing: -11px;
+    word-spacing: 10px;
+    color: var(--crema);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .b-body {
+    position: absolute;
+    top: 500px;
+    left: 68px;
+    width: 700px;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.4;
+    letter-spacing: -0.2px;
+    color: var(--crema);
+    margin: 0;
+  }
+
+  /* Espacio reservado para la foto -- ajustar tamaño/posición cuando
+     tengamos la URL real y podamos ver cómo calza */
+  .b-photo {
+    position: absolute;
+    top: 220px;
+    right: 250px;
+    width: 600px;
+    height: 800px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+</style>

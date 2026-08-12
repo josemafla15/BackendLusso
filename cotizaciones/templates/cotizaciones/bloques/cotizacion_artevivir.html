@@ -1,0 +1,93 @@
+{% load static %}
+<!--
+  BLOQUE: Página — "El arte de vivir" — Lusso Travel
+
+  Sin texto descriptivo, solo 2 fotos verticales lado a lado + headline.
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino             -> str
+    cotizacion.imagen_arte_vivir_1 -> URL (Supabase Storage)
+    cotizacion.imagen_arte_vivir_2 -> URL (Supabase Storage)
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoLargoNegro.png  -> logo oscuro (fondo claro)
+-->
+
+<section class="lusso-page lusso-page--artevivir">
+
+  <div class="a-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <img class="a-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <img class="a-photo a-photo--1" src="{{ cotizacion.imagen_arte_vivir_1 }}" alt="">
+  <img class="a-photo a-photo--2" src="{{ cotizacion.imagen_arte_vivir_2 }}" alt="">
+
+  <h1 class="a-headline">El arte<br>de vivir</h1>
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--artevivir {
+    background: var(--crema);
+  }
+
+  .a-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+    color: var(--negro-editorial);
+  }
+
+  .a-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  /* Dos fotos verticales lado a lado, lado izquierdo */
+  .a-photo {
+    position: absolute;
+    top: 220px;
+    width: 480px;
+    height: 760px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  .a-photo--1 { left: 118px; }
+  .a-photo--2 { left: 630px; }
+
+  /* Headline azul, lado derecho */
+  .a-headline {
+    position: absolute;
+    top: 787px;
+    left: 1140px;
+    width: 780px;
+    font-weight: 900;
+    font-size: 110px;
+    line-height: 0.9;
+    word-spacing: -4px;
+    {% comment %} letter-spacing: -11px; {% endcomment %}
+    color: var(--azul-grisaceo);
+    text-transform: uppercase;
+    margin: 0;
+  }
+</style>

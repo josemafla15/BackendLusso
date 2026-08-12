@@ -7,4 +7,5 @@ urlpatterns = [
     path("webhooks/", include("pagos.urls_webhook")),
     path("pago/", include("pagos.urls")),
     path("api/", include("api.urls")),
+    path("cotizaciones/", include("cotizaciones.urls")),
 ]

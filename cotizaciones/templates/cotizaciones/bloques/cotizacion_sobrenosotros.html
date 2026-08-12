@@ -1,0 +1,145 @@
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página "Sobre nosotros" — Lusso Travel
+
+  Copy de marca fijo. La foto reutiliza cotizacion.imagen_bienvenida
+  (mismo campo que la página "Bienvenidos a [destino]") -- no es
+  específica del destino, así que no creamos un campo nuevo.
+
+  CONTEXTO ESPERADO:
+    cotizacion.imagen_bienvenida  -> URL (Supabase Storage)
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoEstrella.png         -> marca/ícono pequeño, junto al headline
+    churito.png              -> decorativo, esquina superior izquierda
+    machaBlanca.png          -> decorativo, esquina inferior derecha
+-->
+
+<section class="lusso-page lusso-page--sobrenosotros">
+
+  <img class="s-mancha" src="{% static 'cotizaciones/assets/manchaBlanca2.png' %}" alt="">
+
+<img class="s-foto" src="{{ cotizacion.imagen_bienvenida }}" alt="">
+
+<img class="s-churito" src="{% static 'cotizaciones/assets/churito.png' %}" alt="">
+
+  <img class="s-logoestrella" src="{% static 'cotizaciones/assets/logoEstrella.png' %}" alt="Lusso Travel">
+
+  <div class="s-columna">
+    <h1 class="s-headline">Sobre<br>nosotros</h1>
+    <p class="s-subheadline">EL ARTE DE<br>SENTIR EL<br>MUNDO</p>
+  </div>
+
+  <div class="s-blurbs">
+    <p class="s-blurb">En Lusso Travel creemos que los mejores viajes se miden en emociones.</p>
+    <p class="s-blurb">Diseñamos experiencias personalizadas para viajeros que buscan descubrir el mundo de una forma más auténtica, tranquila y significativa.</p>
+    <p class="s-blurb">Nuestro trabajo consiste en encargarnos de cada detalle para que tú solo te dediques a disfrutar.</p>
+  </div>
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--sobrenosotros {
+    background: var(--verde-pastel);
+  }
+
+  .s-churito {
+    position: absolute;
+    top: -325px;
+    left: -350px;
+    width: 1300px;
+    transform: rotate(-50deg);
+  }
+  .s-mancha {
+    position: absolute;
+    bottom: -1050px;
+    right: -400px;
+    width: 1000px;
+    
+  }
+
+  .s-foto {
+    position: absolute;
+    top: 250px;
+    left: 30px;
+    width: 1150px;
+    height: 500px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .s-columna {
+    position: absolute;
+    top: 400px;
+    left: 1280px;
+    width: 850px;
+  }
+
+  .s-logoestrella {
+    position: absolute;
+    top: -18px;
+    left: 1050px;
+    width: 600px;
+    z-index: 0;
+  }
+
+  .s-headline {
+    position: relative;
+    z-index: 1;
+    font-weight: 900;
+    font-size: 90px;
+    line-height: 0.8;
+    letter-spacing: -9px;
+    color: var(--negro-editorial);
+    text-transform: uppercase;
+    margin: 0 0 20px 0;
+  }
+
+  .s-subheadline {
+  position: relative;
+  z-index: 1;
+  font-style: italic;   /* ← quita esta línea o cámbiala a normal */
+  font-weight: 500;
+  font-size: 70px;
+  line-height: 0.9;
+  letter-spacing: -5px;
+  color: var(--negro-editorial);
+  margin: 0;
+}
+
+  .s-blurbs {
+    position: absolute;
+    bottom: 210px;
+    left: 68px;
+    width: 1780px;
+    display: flex;
+    gap: 20px;
+  }
+  .s-blurb {
+    flex: 1;
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.4;
+    color: var(--negro-editorial);
+    margin: 0;
+  }
+</style>
