@@ -31,6 +31,7 @@
   <div class="bv-dates__range">
   {{ cotizacion.fecha_inicio|date:"d" }}&ndash;{{ cotizacion.fecha_fin|date:"d" }} de {{ cotizacion.fecha_fin|date:"F, Y" }}
 </div>
+<div class="bv-dates__lead">{{ cotizacion.lead.nombre }}</div>
 <div class="bv-dates__destino">{{ cotizacion.destino }}</div>
 
   <h1 class="bv-headline">Buen<br>viaje</h1>
@@ -87,9 +88,18 @@
   color: var(--crema);
 }
 
+.bv-dates__lead {
+  position: absolute;
+  top: 168px;
+  right: 78px;
+  font-weight: 600;
+  font-size: 24px;
+  color: var(--crema);
+}
+
 .bv-dates__destino {
   position: absolute;
-  top: 200px;
+  top: 222px;
   right: 78px;
   font-style: normal;
   font-weight: 400;

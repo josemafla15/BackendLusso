@@ -109,6 +109,11 @@ DATABASES = {
 }
 
 
+SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
+SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "cotizaciones")
+
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 

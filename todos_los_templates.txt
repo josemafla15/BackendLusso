@@ -1,0 +1,2257 @@
+
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_artevivir.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_artevivir.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_artevivir.html =====
+
+{% load static %}
+<!--
+  BLOQUE: Página — "El arte de vivir" — Lusso Travel
+
+  Sin texto descriptivo, solo 2 fotos verticales lado a lado + headline.
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino             -> str
+    cotizacion.imagen_arte_vivir_1 -> URL (Supabase Storage)
+    cotizacion.imagen_arte_vivir_2 -> URL (Supabase Storage)
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoLargoNegro.png  -> logo oscuro (fondo claro)
+-->
+
+<section class="lusso-page lusso-page--artevivir">
+
+  <div class="a-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <img class="a-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <img class="a-photo a-photo--1" src="{{ cotizacion.imagen_arte_vivir_1 }}" alt="">
+  <img class="a-photo a-photo--2" src="{{ cotizacion.imagen_arte_vivir_2 }}" alt="">
+
+  <h1 class="a-headline">El arte<br>de vivir</h1>
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--artevivir {
+    background: var(--crema);
+  }
+
+  .a-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+    color: var(--negro-editorial);
+  }
+
+  .a-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  /* Dos fotos verticales lado a lado, lado izquierdo */
+  .a-photo {
+    position: absolute;
+    top: 220px;
+    width: 480px;
+    height: 760px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  .a-photo--1 { left: 118px; }
+  .a-photo--2 { left: 630px; }
+
+  /* Headline azul, lado derecho */
+  .a-headline {
+    position: absolute;
+    top: 787px;
+    left: 1140px;
+    width: 780px;
+    font-weight: 900;
+    font-size: 110px;
+    line-height: 0.9;
+    word-spacing: -4px;
+    {% comment %} letter-spacing: -11px; {% endcomment %}
+    color: var(--azul-grisaceo);
+    text-transform: uppercase;
+    margin: 0;
+  }
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_bienvenidos.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_bienvenidos.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_bienvenidos.html =====
+
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página 4 — "Bienvenidos a [destino]" — Lusso Travel
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino               -> str
+    cotizacion.bienvenida_descripcion -> str (párrafo descriptivo)
+    cotizacion.imagen_bienvenida      -> URL (Supabase Storage) foto grande
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoApilado.png  -> logo crema/blanco (fondo oscuro), mismo de la portada
+    medusa.png       -> decorativo, tope superior, centrado
+-->
+
+<section class="lusso-page lusso-page--bienvenidos">
+
+  <img class="b-medusa" src="{% static 'cotizaciones/assets/medusa.png' %}" alt="">
+
+  <div class="b-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <img class="b-logo" src="{% static 'cotizaciones/assets/logoLargoBlanco.png' %}" alt="Lusso Travel">
+
+  <h1 class="b-headline">Bienvenidos a<br>{{ cotizacion.destino }}</h1>
+
+  <p class="b-body">{{ cotizacion.bienvenida_descripcion }}</p>
+
+  <img class="b-photo" src="{{ cotizacion.imagen_bienvenida }}" alt="{{ cotizacion.destino }}">
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--bienvenidos {
+    background: var(--negro-editorial);
+  }
+
+  .b-medusa {
+    position: absolute;
+    top: -470px;
+    left: 140px;
+    {% comment %} transform: translateX(-50%); {% endcomment %}
+    width: 2000px;
+  }
+
+  .b-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 800;
+    font-size: 25px;
+    letter-spacing: 0.5px;
+    color: var(--crema);
+  }
+
+  .b-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .b-headline {
+    position: absolute;
+    top: 220px;
+    left: 68px;
+    width: 800px;
+    font-weight: 700;
+    font-size: 110px;
+    line-height: 0.9;
+    letter-spacing: -11px;
+    word-spacing: 10px;
+    color: var(--crema);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .b-body {
+    position: absolute;
+    top: 500px;
+    left: 68px;
+    width: 700px;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.4;
+    letter-spacing: -0.2px;
+    color: var(--crema);
+    margin: 0;
+  }
+
+  /* Espacio reservado para la foto -- ajustar tamaño/posición cuando
+     tengamos la URL real y podamos ver cómo calza */
+  .b-photo {
+    position: absolute;
+    top: 220px;
+    right: 250px;
+    width: 600px;
+    height: 800px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_buenviaje.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_buenviaje.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_buenviaje.html =====
+
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página final "Buen viaje" — Lusso Travel
+
+  Cierra el PDF reutilizando destino/fechas (mismos campos que la portada).
+  Los datos de contacto son constantes de marca, no cambian.
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino       -> str
+    cotizacion.fecha_inicio  -> date
+    cotizacion.fecha_fin     -> date
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoApilado.png          -> logo crema (fondo oscuro)
+    swirl_transparente.png   -> decorativo, esquina superior derecha, pegado al borde
+    mancha.png                -> decorativo, esquina inferior derecha (capa de atrás)
+    ventana.png                -> decorativo, esquina inferior derecha (capa de adelante, sobre mancha)
+-->
+
+<section class="lusso-page lusso-page--buenviaje">
+
+  <img class="bv-swirl" src="{% static 'cotizaciones/assets/swirl_transparente.png' %}" alt="">
+  <img class="bv-mancha" src="{% static 'cotizaciones/assets/manchaVolteada.png' %}" alt="">
+  <img class="bv-ventana" src="{% static 'cotizaciones/assets/ventana.png' %}" alt="">
+
+  <img class="bv-logo" src="{% static 'cotizaciones/assets/logoApilado.png' %}" alt="Lusso Travel">
+
+  <div class="bv-dates__range">
+  {{ cotizacion.fecha_inicio|date:"d" }}&ndash;{{ cotizacion.fecha_fin|date:"d" }} de {{ cotizacion.fecha_fin|date:"F, Y" }}
+</div>
+<div class="bv-dates__destino">{{ cotizacion.destino }}</div>
+
+  <h1 class="bv-headline">Buen<br>viaje</h1>
+
+  <div class="bv-contacto">
+    <span>+57 320 550 9589</span>
+    <span>@lussotravelpasto</span>
+    <span>contacto@lussotravel.co</span>
+  </div>
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .lusso-page--buenviaje {
+    background: var(--negro-editorial);
+  }
+
+  .bv-logo {
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    height: 320px;
+  }
+
+  .bv-dates {
+    position: absolute;
+    top: 120px;
+    right: 78px;
+    text-align: right;
+    color: var(--crema);
+    line-height: 1.05;
+  }
+  .bv-dates__range {
+  position: absolute;
+  top: 120px;
+  right: 78px;
+  font-weight: 400;
+  font-size: 32px;
+  color: var(--crema);
+}
+
+.bv-dates__destino {
+  position: absolute;
+  top: 200px;
+  right: 78px;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 36px;
+  color: var(--crema);
+}
+
+  .bv-headline {
+    position: absolute;
+    top: 300px;
+    left: 60px;
+    font-weight: 900;
+    font-size: 250px;
+    line-height: 0.78;
+    letter-spacing: -9px;
+    color: var(--crema);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .bv-contacto {
+    position: absolute;
+    bottom: 90px;
+    left: 68px;
+    display: flex;
+    gap: 300px;
+  }
+  .bv-contacto span {
+    font-weight: 400;
+    font-size: 20px;
+    color: var(--crema);
+  }
+
+  /* Swirl pegado al borde superior derecho */
+  .bv-swirl {
+    position: absolute;
+    top: -280px;
+    right: 70px;
+    width: 700px;
+    transform: rotate(-45deg);
+  }
+
+  /* Mancha detrás de la ventana, esquina inferior derecha */
+  .bv-mancha {
+  position: absolute;
+  bottom: -530px;
+  right: -350px;
+  width: 1100px;
+  
+}
+.bv-ventana {
+  position: absolute;
+  bottom: 150px;
+  right: -100px;
+  width: 800px;
+}
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_completa.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_completa.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_completa.html =====
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cotización — Lusso Travel</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+
+  {% include "cotizaciones/bloques/cotizacion_portada.html" %}
+  {% include "cotizaciones/bloques/cotizacion_organizamos.html" %}
+  {% include "cotizaciones/bloques/cotizacion_despertar.html" %}
+  {% include "cotizaciones/bloques/cotizacion_bienvenidos.html" %}
+  {% include "cotizaciones/bloques/cotizacion_viajesonado.html" %}
+  {% include "cotizaciones/bloques/cotizacion_artevivir.html" %}
+  {% include "cotizaciones/bloques/cotizacion_hotel.html" %}
+  {% include "cotizaciones/bloques/cotizacion_vuelos.html" %}
+  {% include "cotizaciones/bloques/cotizacion_experiencia.html" %}
+  {% include "cotizaciones/bloques/cotizacion_inversion.html" %}
+  {% include "cotizaciones/bloques/cotizacion_creamos.html" %}
+  {% include "cotizaciones/bloques/cotizacion_sobrenosotros.html" %}
+  {% include "cotizaciones/bloques/cotizacion_recuerdo.html" %}
+  {% include "cotizaciones/bloques/cotizacion_buenviaje.html" %}
+
+</body>
+</html>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_creamos.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_creamos.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_creamos.html =====
+
+{% load static %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página "Creamos esta experiencia solo para ti" — Lusso Travel
+
+  Copy de marca 100% fijo (igual que "Así organizamos tu viaje" y
+  "Tu viaje soñado") -- no varía por cotización. Solo el eyebrow usa
+  el destino dinámico, como en las demás páginas.
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino  -> str
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoLargoNegro.png       -> logo oscuro (fondo claro)
+    caraRedonda.png          -> ilustración decorativa, esquina inferior izquierda
+    swirl_transparente.png   -> mismo asset reutilizado x2: arriba centrado, y esquina inferior derecha
+-->
+
+<section class="lusso-page lusso-page--creamos">
+
+  {% comment %} <div class="c-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div> {% endcomment %}
+  <img class="c-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <img class="c-swirl c-swirl--top" src="{% static 'cotizaciones/assets/swirl_transparente.png' %}" alt="">
+  <img class="c-swirl c-swirl--br" src="{% static 'cotizaciones/assets/swirl_transparente.png' %}" alt="">
+
+  <h1 class="c-headline">Creamos<br>esta experiencia<br>solo para ti</h1>
+
+  <p class="c-body">
+    Pensamos en este viaje porque durante nuestra conversación nos contaste
+    que buscas descansar, desconectarte de la rutina y vivir una experiencia
+    diferente sin preocuparte por la logística.
+  </p>
+
+  <p class="c-body">
+    Por eso seleccionamos hoteles con excelente ubicación, experiencias
+    auténticas y un itinerario equilibrado que te permitirá disfrutar cada
+    momento sin prisas.
+  </p>
+
+  <img class="c-cara" src="{% static 'cotizaciones/assets/caraRedonda.png' %}" alt="">
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--creamos {
+    background: var(--crema);
+  }
+
+  .c-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+    color: var(--negro-editorial);
+  }
+
+  .c-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .c-swirl { position: absolute; }
+  .c-swirl--top {
+    top: -240px;
+    left: 720px;
+    transform: translateX(-50%);
+    width: 800px;
+  }
+  .c-swirl--br {
+    bottom: -710px;
+    right: -420px;
+    width: 800px;
+    transform: rotate(315deg);
+  }
+
+  .c-headline {
+    position: absolute;
+    top: 150px;
+    left: 68px;
+    width: 800px;
+    font-weight: 900;
+    font-size: 87px;
+    line-height: 0.95;
+    letter-spacing: -8px;
+    color: var(--negro-editorial);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .c-body {
+    position: absolute;
+    left: 1000px;
+    width: 650px;
+    font-weight: 450;
+    font-size: 28px;
+    line-height: 1;
+    letter-spacing: -0.2px;
+    color: var(--negro-editorial);
+    margin: 0;
+  }
+  .c-body:nth-of-type(1) { top: 450px; }
+  .c-body:nth-of-type(2) { top: 700px; }
+
+  .c-cara {
+    position: absolute;
+    bottom: -1px;
+    left: 130px;
+    width: 750px;
+  }
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_despertar.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_despertar.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_despertar.html =====
+
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página 3 — "Imagina despertar aquí" — Lusso Travel
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino                    -> str
+    cotizacion.descripcion_destino        -> str (párrafo descriptivo)
+    cotizacion.imagen_destino             -> URL (Supabase Storage) foto principal
+    cotizacion.imagen_destino_secundaria  -> URL (Supabase Storage) foto horizontal debajo del texto
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoLargoNegro.png  -> mismo logo oscuro que ya usas en la página 2
+    mancha.png          -> elemento decorativo, esquina inferior izquierda
+-->
+
+<section class="lusso-page lusso-page--despertar">
+
+  <div class="d-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <img class="d-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <h1 class="d-headline">Imagina<br>despertar aquí</h1>
+
+  <p class="d-body">{{ cotizacion.descripcion_destino }}</p>
+
+  <img class="d-mancha" src="{% static 'cotizaciones/assets/mancha.png' %}" alt="">
+
+  <img class="d-photo-secundaria" src="{{ cotizacion.imagen_destino_secundaria }}" alt="">
+
+  <img class="d-photo" src="{{ cotizacion.imagen_destino }}" alt="{{ cotizacion.destino }}">
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--despertar {
+    background: var(--azul-grisaceo);
+  }
+
+  .d-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 800;
+    font-size: 25px;
+    letter-spacing: 0.5px;
+    color: var(--negro-editorial);
+  }
+
+  .d-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .d-headline {
+    position: absolute;
+    top: 190px;
+    left: 68px;
+    width: 800px;
+    font-weight: 900;
+    font-size: 90px;
+    line-height: 0.82;
+    letter-spacing: -7px;
+    color: var(--crema);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .d-body {
+    position: absolute;
+    top: 400px;
+    left: 80px;
+    width: 640px;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.4;
+    letter-spacing: -0.2px;
+    color: var(--negro-editorial);
+    margin: 0;
+  }
+
+  /* Foto principal -- reducida a la mitad del alto (780 -> 390) */
+  .d-photo {
+    position: absolute;
+    top: 180px;
+    right: 100px;
+    width: 800px;
+    height: 750px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  /* Foto secundaria horizontal, debajo de la descripción */
+  .d-photo-secundaria {
+    position: absolute;
+    top: 600px;
+    left: 68px;
+    width: 900px;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  /* Mancha decorativa, esquina inferior izquierda */
+  .d-mancha {
+    position: absolute;
+    bottom: -900px;
+    left: -500px;
+    width: 900px;
+  }
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_experiencia.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_experiencia.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_experiencia.html =====
+
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página "Tu experiencia" — Lusso Travel
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino  -> str
+    cotizacion.incluye  -> list de strings (JSONField, ya existía en el modelo)
+                            Ej: ["Tiquetes ida y regreso desde Pasto",
+                                 "3 noches en Hotel Ciela...", ...]
+
+  Las líneas "Asistencia médica" y "Acompañamiento Lusso Travel" son
+  CONSTANTES -- siempre aparecen, no vienen de ningún campo.
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoLargoNegro.png  -> logo oscuro (fondo claro)
+    manchaBlanca.png    -> decorativo, esquina superior derecha
+    churito.png         -> mismo asset reutilizado (rotado 90°), esquina superior izquierda
+    carrito.png          -> ilustración del carro con maletas, lado izquierdo
+-->
+
+<section class="lusso-page lusso-page--experiencia">
+
+  <img class="e-mancha" src="{% static 'cotizaciones/assets/machaBlanca.png' %}" alt="">
+  <img class="e-churito" src="{% static 'cotizaciones/assets/churito.png' %}" alt="">
+
+  <div class="e-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <img class="e-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <h1 class="e-headline">Tu experiencia</h1>
+
+  <img class="e-carrito" src="{% static 'cotizaciones/assets/carrito.png' %}" alt="">
+
+  <div class="e-contenido">
+    <h2 class="e-subtitulo">Incluye:</h2>
+    <ul class="e-lista">
+      {% for item in cotizacion.incluye %}
+        <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+
+    <div class="e-constante">Asistencia médica</div>
+    <div class="e-constante">Acompañamiento Lusso Travel</div>
+  </div>
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--experiencia {
+    background: var(--azul-grisaceo);
+  }
+
+  .e-mancha {
+    position: absolute;
+    top: -1150px;
+    right: -700px;
+    width: 1600px;
+    
+  }
+
+  .e-churito {
+    position: absolute;
+    top: -570px;
+    left: -610px;
+    width: 1400px;
+    transform: rotate(270deg);
+  }
+
+  .e-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+    color: var(--negro-editorial);
+  }
+
+  .e-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .e-headline {
+    position: absolute;
+    top: 150px;
+    left: 68px;
+    font-weight: 900;
+    font-size: 120px;
+    letter-spacing: -9px;
+    color: var(--crema);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .e-carrito {
+    position: absolute;
+    top: 370px;
+    left: 175px;
+    width: 650px;
+  }
+
+  .e-contenido {
+    position: absolute;
+    top: 350px;
+    left: 970px;
+    width: 700px;
+  }
+
+  .e-subtitulo {
+    font-weight: 700;
+    font-size: 35px;
+    color: var(--negro-editorial);
+    margin: 0 0 16px 0;
+  }
+
+  .e-lista {
+    list-style: none;
+    margin: 0 0 32px 40px;
+    padding: 0;
+  }
+  .e-lista li {
+    position: relative;
+    padding-left: 28px;
+    font-weight: 600;
+    font-size: 25px;
+    line-height: 1.4;
+    color: var(--negro-editorial);
+    margin-bottom: 14px;
+  }
+  .e-lista li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--negro-editorial);
+  }
+
+  .e-constante {
+    font-weight: 900;
+    font-size: 33px;
+    color: var(--negro-editorial);
+    margin-bottom: 10px;
+  }
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_hotel.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_hotel.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_hotel.html =====
+
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página(s) de Hotel — Lusso Travel
+
+  IMPORTANTE: este bloque usa un for-loop -- genera UNA página por cada
+  hotel que el asesor haya agregado a la cotización (CotizacionHotel).
+  Si hay 1 hotel, sale 1 página. Si hay 3, salen 3. No hay que tocar
+  código para escalar esto.
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino          -> str
+    cotizacion.hoteles.all      -> queryset de CotizacionHotel, cada uno con:
+        .nombre_display          -> str (del catálogo o nombre_libre)
+        .noches                  -> int
+        .tipo_habitacion         -> str
+        .plan_alimentacion       -> str
+        .hotel.direccion         -> str (si viene del catálogo)
+        .hotel.descripcion       -> str
+        .hotel.horario_restaurante -> str
+        .hotel.imagenes.all      -> queryset de HotelImagen (usamos las primeras 3)
+
+  ASSETS ESTÁTICOS:
+    logoLargoNegro.png       -> logo oscuro (fondo claro)
+    churito.png              -> decorativo, arriba centrado
+-->
+
+{% for h in cotizacion.hoteles.all %}
+<section class="lusso-page lusso-page--hotel">
+
+  <img class="h-churito" src="{% static 'cotizaciones/assets/churito.png' %}" alt="">
+
+  <div class="h-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <img class="h-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <h1 class="h-headline">{{ h.nombre_display }}</h1>
+
+  {% if h.hotel.direccion %}
+    <div class="h-direccion">{{ h.hotel.direccion }}</div>
+  {% endif %}
+
+  <p class="h-descripcion">{{ h.hotel.descripcion }}</p>
+
+  <div class="h-datos">
+    <h2 class="h-datos__titulo">Datos importantes de estadía</h2>
+
+    <div class="h-dato">
+      <span class="h-dato__label">Noches:</span> {{ h.noches }}
+    </div>
+    {% if h.tipo_habitacion %}
+      <div class="h-dato">
+        <span class="h-dato__label">Habitación:</span> {{ h.tipo_habitacion }}
+      </div>
+    {% endif %}
+    {% if h.plan_alimentacion %}
+      <div class="h-dato">
+        <span class="h-dato__label">Alimentación:</span> {{ h.plan_alimentacion }}
+      </div>
+    {% endif %}
+    {% if h.hotel.horario_restaurante %}
+      <div class="h-dato">
+        <span class="h-dato__label">Horario restaurante:</span> {{ h.hotel.horario_restaurante }}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="h-fotos">
+    {% with imgs=h.hotel.imagenes.all %}
+      {% if imgs.0 %}
+        <img class="h-foto h-foto--top" src="{{ imgs.0.url }}" alt="{{ h.nombre_display }}">
+      {% endif %}
+      <div class="h-fotos__row">
+        {% if imgs.1 %}
+          <img class="h-foto h-foto--half" src="{{ imgs.1.url }}" alt="{{ h.nombre_display }}">
+        {% endif %}
+        {% if imgs.2 %}
+          <img class="h-foto h-foto--half" src="{{ imgs.2.url }}" alt="{{ h.nombre_display }}">
+        {% endif %}
+      </div>
+    {% endwith %}
+  </div>
+
+</section>
+{% endfor %}
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--hotel {
+    background: var(--verde-pastel);
+  }
+
+  .h-churito {
+  position: absolute;
+  top: -240px;
+  left: 460px;
+  width: 1400px;
+}
+
+
+
+  .h-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+    color: var(--negro-editorial);
+  }
+
+  .h-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .h-headline {
+    position: absolute;
+    top: 200px;
+    left: 68px;
+    width: 700px;
+    font-weight: 900;
+    font-size: 90px;
+    line-height: 0.95;
+    letter-spacing: -3px;
+    color: var(--negro-editorial);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .h-direccion {
+  position: absolute;
+  top: 400px;
+  left: 68px;
+  width: 900px;
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--negro-editorial);
+  padding-bottom: 6px;
+  
+  
+}
+
+  .h-descripcion {
+    position: absolute;
+    top: 450px;
+    left: 68px;
+    width: 800px;
+    font-weight: 400;
+    font-size: 25px;
+    line-height: 1.3;
+    color: var(--negro-editorial);
+    margin: 0;
+  }
+
+  .h-datos {
+    position: absolute;
+    top: 680px;
+    left: 68px;
+    width: 700px;
+  }
+  .h-datos__titulo {
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--negro-editorial);
+    margin: 0 0 12px 0;
+  }
+  .h-dato {
+    font-weight: 400;
+    font-size: 18px;
+    color: var(--negro-editorial);
+    margin-bottom: 6px;
+  }
+  .h-dato__label {
+    font-weight: 700;
+  }
+
+  /* Foto grande horizontal arriba + 2 fotos a la mitad debajo, lado derecho.
+     Cada pieza tiene su propio 'top' independiente -- cambiar el alto de
+     una NO mueve a la otra automáticamente. */
+  .h-fotos {
+    position: absolute;
+    top: 200px;
+    right: 68px;
+    width: 780px;
+  }
+  .h-foto--top {
+    position: absolute;
+    top: 0;
+    left: -100px;
+    width: 900px;
+    height: 340px;   /* ← cambia solo este alto, la fila de abajo no se mueve sola */
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  .h-fotos__row {
+    position: absolute;
+    top: 400px;   /* ← este número controla dónde empieza la fila de abajo, muévelo tú a mano */
+    left: -100px;
+    display: flex;
+    gap: 60px;
+  }
+  .h-foto--half {
+    width: 420px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_inversion.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_inversion.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_inversion.html =====
+
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página "Inversión" — Lusso Travel
+
+  DOS ESQUEMAS, según qué datos tenga la cotización:
+
+  1) SIMPLE (sin PrecioItem): usa cotizacion.precio_por_persona y
+     cotizacion.precio_total directo. Es el caso más común.
+
+  2) MÚLTIPLES LÍNEAS (con PrecioItem): cada línea es un precio propio
+     (Adultos/Niño, Tarifa sencilla/doble, un precio por cada hotel a
+     elegir). El total, si existe, sale de precio_total: si no hay un
+     total único, se muestra precio_nota_total en su lugar.
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino             -> str
+    cotizacion.precios.all         -> queryset de PrecioItem (puede estar vacío)
+    cotizacion.precio_total        -> Decimal o None
+    cotizacion.precio_por_persona  -> Decimal o Nonelo
+    cotizacion.precio_nota_total   -> str (mensaje alternativo al total)
+
+  ASSETS ESTÁTICOS:
+    logoApilado.png  -> logo crema (fondo oscuro)
+-->
+
+<section class="lusso-page lusso-page--inversion">
+
+  <div class="i-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <img class="i-logo" src="{% static 'cotizaciones/assets/logoLargoBlanco.png' %}" alt="Lusso Travel">
+
+  <h1 class="i-headline">Inversión</h1>
+
+  <div class="i-contenido">
+
+    {% if cotizacion.precios.all %}
+      <!-- Esquema de múltiples líneas -->
+      {% for p in cotizacion.precios.all %}
+        <div class="i-linea">
+          <span class="i-linea__precio">$ {{ p.precio|floatformat:0 }}</span>
+          <span class="i-linea__etiqueta">{{ p.etiqueta }}</span>
+        </div>
+        {% if p.nota %}
+          <div class="i-linea__nota">{{ p.nota }}</div>
+        {% endif %}
+      {% endfor %}
+
+      {% if cotizacion.precio_total %}
+        <div class="i-total">Total: $ {{ cotizacion.precio_total|floatformat:0 }}</div>
+      {% elif cotizacion.precio_nota_total %}
+        <div class="i-nota-total">{{ cotizacion.precio_nota_total }}</div>
+      {% endif %}
+
+    {% else %}
+      <!-- Esquema simple: por persona + total -->
+      <div class="i-simple">
+  {% if cotizacion.precio_por_persona %}
+    <div class="i-label-persona">Costo persona</div>
+    <div class="i-valor-persona">$ {{ cotizacion.precio_por_persona|floatformat:0 }}</div>
+  {% endif %}
+  {% if cotizacion.precio_total %}
+    <div class="i-label-total">Costo total</div>
+    <div class="i-valor-total">$ {{ cotizacion.precio_total|floatformat:0 }}</div>
+  {% endif %}
+</div>
+    {% endif %}
+
+  </div>
+
+  <div class="i-footer">Contarás con acompañamiento del equipo de Lusso Travel cada que lo requieras durante tu viaje.</div>
+
+  <img class="i-macha" src="{% static 'cotizaciones/assets/machaBlanca.png' %}" alt="">
+  <img class="i-maleta" src="{% static 'cotizaciones/assets/maleta.png' %}" alt="">
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--inversion {
+    background: var(--negro-editorial);
+  }
+
+  .i-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+    color: var(--crema);
+  }
+
+  .i-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .i-headline {
+    position: absolute;
+    top: 220px;
+    left: 80px;
+    font-weight: 900;
+    font-size: 120px;
+    letter-spacing: -9px;
+    color: var(--crema);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .i-contenido {
+    position: absolute;
+    top: 420px;
+    left: 68px;
+    width: 1400px;
+  }
+
+  /* --- Esquema múltiples líneas --- */
+  .i-linea {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 4px;
+  }
+  .i-linea__precio {
+    font-weight: 800;
+    font-size: 36px;
+    color: var(--crema);
+  }
+  .i-linea__etiqueta {
+    font-weight: 400;
+    font-size: 28px;
+    color: var(--crema);
+  }
+  .i-linea__nota {
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.5px;
+    color: rgba(255,246,244,0.6);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .i-total {
+    font-weight: 800;
+    font-size: 40px;
+    color: var(--crema);
+    margin-top: 24px;
+  }
+  .i-nota-total {
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.4;
+    color: rgba(255,246,244,0.85);
+    margin-top: 24px;
+    max-width: 700px;
+  }
+
+  .i-simple {
+  position: relative;
+}
+
+.i-label-persona {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 620px;
+  font-weight: 700;
+  font-size: 50px;
+  color: var(--crema);
+}
+
+.i-valor-persona {
+  position: absolute;
+  top: 70px;
+  left: 0;
+  width: 620px;
+  font-weight: 400;
+  font-size: 47px;
+  color: var(--crema);
+}
+
+.i-label-total {
+  position: absolute;
+  top: 180px;
+  left: 0;
+  width: 620px;
+  font-weight: 700;
+  font-size: 50px;
+  color: var(--crema);
+}
+
+.i-valor-total {
+  position: absolute;
+  top: 250px;
+  left: 0;
+  width: 620px;
+  font-weight: 400;
+  font-size: 47px;
+  color: var(--crema);
+}
+  .i-footer {
+    position: absolute;
+    bottom: 100px;
+    left: 68px;
+    width: 700px;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.4;
+    color: var(--crema);
+  }
+
+  .i-macha {
+    position: absolute;
+    bottom: -1250px;
+    right: -250px;
+    width: 1500px;
+  }
+
+  .i-maleta {
+    position: absolute;
+    bottom: -100px;
+    right: -50px;
+    width: 1000px;
+  }
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_organizamos.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_organizamos.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_organizamos.html =====
+
+{% load static %}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página 2 — "Así organizamos tu viaje" — Lusso Travel
+  Se incluye dentro del template maestro más adelante (cotizacion_completa.html).
+
+  Esta página es 100% copy de marca fijo (no depende de datos de la
+  cotización), así que no recibe variables de contexto especiales.
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoLargoNegro.png  -> logo Lusso Travel, versión oscura horizontal
+                            (para fondo claro / verde pastel)
+    playa2.png          -> ilustración/foto de elementos de playa
+                            (toalla, sandalias, lentes de sol, limón)
+-->
+
+<section class="lusso-page lusso-page--organizamos">
+
+  <img class="o-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <h1 class="o-headline">Así<br>organizamos<br>tu viaje</h1>
+
+  <p class="o-body">
+    Empieza cuando imaginas caminar por calles desconocidas. Cuando sueñas
+    con probar sabores nuevos. Cuando te preguntas cómo se verá ese paisaje
+    que has guardado tantas veces en Pinterest. Nosotros nos encargamos de
+    que cumplas tu sueño.
+  </p>
+
+  <div class="o-lists">
+    <ul class="o-list">
+      <li>Tu destino</li>
+      <li>Qué visitar</li>
+      <li>Experiencia</li>
+      <li>Inversión</li>
+    </ul>
+    <ul class="o-list">
+      <li>Porqué viajar con nosotros</li>
+    </ul>
+  </div>
+
+  <img class="o-illustration" src="{% static 'cotizaciones/assets/playa2.png' %}" alt="">
+
+</section>
+
+<style>
+  /* ===== Tokens compartidos — ya deberían venir de la portada si están en el mismo documento ===== */
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--organizamos {
+    background: var(--verde-pastel);
+  }
+
+  .o-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .o-headline {
+    position: absolute;
+    top: 143px;
+    left: 68px;
+    width: 700px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 900;
+    font-size: 78px;
+    line-height: 0.92;
+    letter-spacing: -7px;
+    color: var(--negro-editorial);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .o-body {
+    position: absolute;
+    top: 380px;
+    left: 70px;
+    width: 750px;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 0.9;
+    letter-spacing: -0.3px;
+    color: var(--negro-editorial);
+    margin: 0;
+  }
+
+  .o-lists {
+    position: absolute;
+    top: 235px;
+    left: 1020px;
+    display: flex;
+    gap: 90px;
+  }
+  .o-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .o-list li {
+  font-family: 'Poppins', sans-serif;   
+  font-weight: 900;
+  font-size: 45px;
+  line-height: 0.80;
+  letter-spacing: -0.5px;
+  color: var(--negro-editorial);
+  text-transform: uppercase;
+  margin-bottom: 25px;
+  position: relative;
+  padding-left: 32px;
+  max-width: 300px;
+}
+  .o-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--negro-editorial);
+  }
+
+  .o-illustration {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+  }
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_portada.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_portada.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_portada.html =====
+
+{% load static %}
+<!--
+  BLOQUE: Portada de cotización — Lusso Travel
+  Se incluye dentro del template maestro más adelante (cotizacion_completa.html).
+
+  CONTEXTO ESPERADO (pásalo desde la vista/tarea Celery):
+    cotizacion.destino          -> str, ej: "Coveñas"
+    cotizacion.fecha_inicio     -> date
+    cotizacion.fecha_fin        -> date
+    cotizacion.lead.nombre      -> str
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoApilado.png          -> logo Lusso Travel (versión apilada, crema/blanca)
+    swirl_transparente.png   -> garabato/loop decorativo. Es UN SOLO archivo,
+                                 se reutiliza 2 veces en esta página con rotate
+                                 vía CSS: arriba (inclinado -12°) y abajo-
+                                 derecha (rotado 180°).
+    pasaporte.png             -> ilustración pasaporte/maleta/avión (PNG transparente)
+    textoTransparente.png    -> "TU PRÓXIMA HISTORIA / COMIENZA AQUÍ" ya
+                                 maquetado como imagen fija (copy de marca,
+                                 no editable, para evitar problemas de
+                                 reconstrucción de texto al reimportar a Canva)
+-->
+
+<section class="lusso-page lusso-page--portada">
+
+  <img class="p-logo-mark" src="{% static 'cotizaciones/assets/logoApilado.png' %}" alt="Lusso Travel">
+
+  <div class="p-dates">
+    <div class="p-dates__range">
+      {{ cotizacion.fecha_inicio|date:"d" }}&ndash;{{ cotizacion.fecha_fin|date:"d" }} de {{ cotizacion.fecha_fin|date:"F, Y" }}
+    </div>
+    <div class="p-dates__lead">{{ cotizacion.lead.nombre }}</div>
+    <div class="p-dates__destino">{{ cotizacion.destino }}</div>
+  </div>
+
+  <!-- swirl_transparente.png reutilizado x2: mismo archivo, distinta orientación por CSS -->
+  <img class="p-doodle p-doodle--top" src="{% static 'cotizaciones/assets/swirl_transparente.png' %}" alt="">
+  <img class="p-doodle p-doodle--br" src="{% static 'cotizaciones/assets/swirl_transparente.png' %}" alt="">
+
+  <img class="p-headline-img" src="{% static 'cotizaciones/assets/textoTransparente.png' %}" alt="Tu próxima historia comienza aquí">
+
+  <img class="p-illustration" src="{% static 'cotizaciones/assets/pasaporte.png' %}" alt="">
+
+  <div class="p-footer">
+    <p class="p-footer__lead">Este paquete fue creado especialmente para ti por Lusso Travel.</p>
+    <p class="p-footer__body">
+      Viajar es una de las pocas cosas que compramos y nos devuelve algo más valioso que el
+      dinero: recuerdos. Y algunos recuerdos permanecen para siempre.
+    </p>
+  </div>
+
+</section>
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #212222;
+  }
+
+  /* ===== Tokens compartidos — mover a un archivo base.css incluido una sola vez ===== */
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always; /* clave para que Playwright separe cada sección en su propia página del PDF */
+  }
+
+  .lusso-page--portada {
+    background: var(--negro-editorial);
+  }
+
+  /* ---------- Logo ---------- */
+  .p-logo-mark {
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    height: 300px;
+  }
+
+  /* ---------- Fechas ---------- */
+  .p-dates {
+    position: absolute;
+    top: 78px;
+    right: 78px;
+    text-align: right;
+    color: var(--crema);
+    line-height: 1.05;
+  }
+  .p-dates__range {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 32px;
+  }
+  .p-dates__lead {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 24px;
+    margin-top: 4px;
+  }
+  .p-dates__destino {
+    font-family: 'Poppins', sans-serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 37px;
+    margin-top: -4px;
+  }
+
+  /* ---------- Doodles (mismo swirl_transparente.png, reorientado por instancia) ---------- */
+  /* Solo 2 instancias: arriba (inclinado) y abajo-derecha (rotado 180°) */
+  .p-doodle { position: absolute; }
+  .p-doodle--top { top: -200px; right: 480px; width: 800px; transform: rotate(-12deg); }
+  .p-doodle--br  { bottom: -700px; right: -450px; width: 800px; transform: rotate(-50deg); }
+
+  /* ---------- Headline (ahora imagen fija, ver textoTransparente.png) ---------- */
+  .p-headline-img {
+    position: absolute;
+    top: 100px;
+    left: 20px;
+    width: 900px;   /* ← ajusta a ojo hasta que calce con el tamaño que tenías */
+  }
+
+  /* ---------- Ilustración ---------- */
+  .p-illustration {
+    position: absolute;
+    top: 250px;
+    right: 220px;
+    width: 700px;
+  }
+
+  /* ---------- Footer ---------- */
+  .p-footer {
+    position: absolute;
+    bottom: 96px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    text-align: center;
+    color: var(--crema);
+  }
+  .p-footer__lead {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.3px;
+    margin: 0 0 2px 0;
+    color: rgba(255,246,244,0.80);
+  }
+  .p-footer__body {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+    letter-spacing: -0.2px;
+    color: rgba(255,246,244,0.70);
+    line-height: 1.4;
+    margin: 0;
+  }
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_recuerdo.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_recuerdo.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_recuerdo.html =====
+
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página "¿Y si este viaje es el que recuerdes toda tu vida?" — Lusso Travel
+
+  Headline y las 2 fotos son 100% copy/assets fijos de marca -- no varían
+  por cotización. Igual que "Creamos esta experiencia" y "Sobre nosotros".
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoEstrellaLusso.png  -> logo, esquina superior izquierda
+    recuerdo1.png           -> foto horizontal, arriba/izquierda
+    recuerdo2.png           -> foto superpuesta, abajo/derecha
+-->
+
+<section class="lusso-page lusso-page--recuerdo">
+
+  <img class="r-logo" src="{% static 'cotizaciones/assets/logoEstrellaLusso.png' %}" alt="Lusso Travel">
+
+  <h1 class="r-headline">¿Y si este<br>viaje es el<br>que recuerdes<br>toda tu vida?</h1>
+
+  <img class="r-foto r-foto--1" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=75&fm=jpg" alt="">
+  <img class="r-foto r-foto--2" src="https://images.unsplash.com/photo-1519046904884-53103b34b206?w=1200&q=75&fm=jpg" alt="">
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--recuerdo {
+    background: var(--azul-grisaceo);
+  }
+
+  .r-logo {
+    position: absolute;
+    top: -100px;
+    left: -20px;
+    height: 700px;
+  }
+
+  .r-headline {
+    position: absolute;
+    top: 200px;
+    left: 1280px;
+    width: 480px;
+    font-weight: 900;
+    font-size: 85px;
+    line-height: 0.8;
+    letter-spacing: -7px;
+    color: var(--crema);
+    text-transform: uppercase;
+    margin: 0;
+    word-spacing: 10px;
+  }
+
+  /* Foto 1: horizontal amplia, arriba/izquierda */
+  .r-foto--1 {
+    position: absolute;
+    top: 400px;
+    left: 68px;
+    width: 1100px;
+    height: 530px;
+    object-fit: cover;
+    z-index: 1;
+  }
+
+  /* Foto 2: superpuesta, abajo/derecha de la primera, con borde para separarla visualmente */
+  .r-foto--2 {
+    position: absolute;
+    top: 720px;
+    left: 900px;
+    width: 900px;
+    height: 330px;
+    object-fit: cover;
+   
+    z-index: 2;
+  }
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_sobrenosotros.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_sobrenosotros.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_sobrenosotros.html =====
+
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página "Sobre nosotros" — Lusso Travel
+
+  Copy de marca fijo. La foto reutiliza cotizacion.imagen_bienvenida
+  (mismo campo que la página "Bienvenidos a [destino]") -- no es
+  específica del destino, así que no creamos un campo nuevo.
+
+  CONTEXTO ESPERADO:
+    cotizacion.imagen_bienvenida  -> URL (Supabase Storage)
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoEstrella.png         -> marca/ícono pequeño, junto al headline
+    churito.png              -> decorativo, esquina superior izquierda
+    machaBlanca.png          -> decorativo, esquina inferior derecha
+-->
+
+<section class="lusso-page lusso-page--sobrenosotros">
+
+  <img class="s-mancha" src="{% static 'cotizaciones/assets/manchaBlanca2.png' %}" alt="">
+
+<img class="s-foto" src="{{ cotizacion.imagen_bienvenida }}" alt="">
+
+<img class="s-churito" src="{% static 'cotizaciones/assets/churito.png' %}" alt="">
+
+  <img class="s-logoestrella" src="{% static 'cotizaciones/assets/logoEstrella.png' %}" alt="Lusso Travel">
+
+  <div class="s-columna">
+    <h1 class="s-headline">Sobre<br>nosotros</h1>
+    <p class="s-subheadline">EL ARTE DE<br>SENTIR EL<br>MUNDO</p>
+  </div>
+
+  <div class="s-blurbs">
+    <p class="s-blurb">En Lusso Travel creemos que los mejores viajes se miden en emociones.</p>
+    <p class="s-blurb">Diseñamos experiencias personalizadas para viajeros que buscan descubrir el mundo de una forma más auténtica, tranquila y significativa.</p>
+    <p class="s-blurb">Nuestro trabajo consiste en encargarnos de cada detalle para que tú solo te dediques a disfrutar.</p>
+  </div>
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--sobrenosotros {
+    background: var(--verde-pastel);
+  }
+
+  .s-churito {
+    position: absolute;
+    top: -325px;
+    left: -350px;
+    width: 1300px;
+    transform: rotate(-50deg);
+  }
+  .s-mancha {
+    position: absolute;
+    bottom: -1050px;
+    right: -400px;
+    width: 1000px;
+    
+  }
+
+  .s-foto {
+    position: absolute;
+    top: 250px;
+    left: 30px;
+    width: 1150px;
+    height: 500px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .s-columna {
+    position: absolute;
+    top: 400px;
+    left: 1280px;
+    width: 850px;
+  }
+
+  .s-logoestrella {
+    position: absolute;
+    top: -18px;
+    left: 1050px;
+    width: 600px;
+    z-index: 0;
+  }
+
+  .s-headline {
+    position: relative;
+    z-index: 1;
+    font-weight: 900;
+    font-size: 90px;
+    line-height: 0.8;
+    letter-spacing: -9px;
+    color: var(--negro-editorial);
+    text-transform: uppercase;
+    margin: 0 0 20px 0;
+  }
+
+  .s-subheadline {
+  position: relative;
+  z-index: 1;
+  font-style: italic;   /* ← quita esta línea o cámbiala a normal */
+  font-weight: 500;
+  font-size: 70px;
+  line-height: 0.9;
+  letter-spacing: -5px;
+  color: var(--negro-editorial);
+  margin: 0;
+}
+
+  .s-blurbs {
+    position: absolute;
+    bottom: 210px;
+    left: 68px;
+    width: 1780px;
+    display: flex;
+    gap: 20px;
+  }
+  .s-blurb {
+    flex: 1;
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.4;
+    color: var(--negro-editorial);
+    margin: 0;
+  }
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_viajesonado.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_viajesonado.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_viajesonado.html =====
+
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página 5 — "Tu viaje soñado" — Lusso Travel
+
+  El headline y los subtítulos son texto vivo (cortos, una línea, importan
+  bien a Canva). La intro y los párrafos largos bajo cada subtítulo ahora
+  son IMÁGENES fijas -- evita que Canva rompa el espaciado al reimportar
+  párrafos multilínea (ver diagnóstico: el importador de PDF de Canva
+  segmenta texto largo de forma inconsistente, sin relación con el CSS
+  de origen).
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino             -> str
+    cotizacion.imagen_viaje_sonado -> URL (Supabase Storage) foto horizontal
+
+  ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
+    logoLargoNegro.png      -> logo oscuro (fondo claro)
+    caraRedonda.png         -> elemento decorativo, esquina inferior derecha
+    viajesonado_intro.png   -> "Al llegar a [destino]..." (imagen fija)
+    viajesonado_texto1.png  -> párrafo bajo "Disfrutas cada instante" (imagen fija)
+    viajesonado_texto2.png  -> párrafo bajo "Te llevas recuerdos inolvidables" (imagen fija)
+-->
+
+<section class="lusso-page lusso-page--viajesonado">
+
+  <div class="v-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <img class="v-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <img class="v-photo" src="{{ cotizacion.imagen_viaje_sonado }}" alt="{{ cotizacion.destino }}">
+
+  <div class="v-content">
+    <h1 class="v-headline">Tu viaje<br>soñado</h1>
+
+    <img class="v-intro-img" src="{% static 'cotizaciones/assets/viajesonado_intro.png' %}" alt="Al llegar a tu destino, te recibe la brisa del Caribe, el sonido de las olas y la tranquilidad de un destino perfecto para desconectarte de la rutina y comenzar a disfrutar.">
+
+    <div class="v-block">
+      <h2 class="v-subtitle">Disfrutas cada instante</h2>
+      <img class="v-text-img" src="{% static 'cotizaciones/assets/viajesonado_texto1.png' %}" alt="Relájate frente al mar, contempla espectaculares amaneceres, recorre sus playas y comparte momentos únicos con quienes más quieres. Cada día está lleno de descanso, diversión y experiencias inolvidables.">
+    </div>
+
+    <div class="v-block">
+      <h2 class="v-subtitle">Te llevas recuerdos inolvidables</h2>
+      <img class="v-text-img" src="{% static 'cotizaciones/assets/viajesonado_texto2.png' %}" alt="Cuando llegue el momento de regresar, no solo llevarás fotografías, sino también la felicidad de haber vivido días llenos de tranquilidad, paisajes maravillosos y momentos que quedarán para siempre en tu memoria.">
+    </div>
+  </div>
+
+  <img class="v-mancha" src="{% static 'cotizaciones/assets/caraRedonda.png' %}" alt="">
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--viajesonado {
+    background: var(--crema);
+  }
+
+  .v-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 800;
+    font-size: 25px;
+    letter-spacing: 0.5px;
+    color: var(--negro-editorial);
+  }
+
+  .v-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .v-photo {
+    position: absolute;
+    top: 220px;
+    left: 200px;
+    width: 500px;
+    height: 620px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .v-content {
+    position: absolute;
+    top: 220px;
+    left: 900px;
+    width: 780px;
+  }
+
+  .v-headline {
+    font-weight: 900;
+    font-size: 120px;
+    line-height: 0.8;
+    letter-spacing: -7px;
+    color: var(--negro-editorial);
+    text-transform: uppercase;
+    margin: 0 0 24px 0;
+  }
+
+  .v-intro-img {
+    display: block;
+    width: 700px;
+    margin: 80px 0 36px 0;
+  }
+
+  .v-block {
+    margin-bottom: 28px;
+  }
+
+  .v-subtitle {
+    font-weight: 850;
+    font-size: 24px;
+    color: var(--negro-editorial);
+    margin: 0 0 8px 0;
+  }
+
+  .v-text-img {
+    display: block;
+    width: 700px;
+  }
+
+  .v-mancha {
+    position: absolute;
+    bottom: -120px;
+    right: -120px;
+    width: 550px;
+  }
+</style>
+(venv) C:\Users\Jose Mafla\Desktop\backendLusso\cotizaciones>(
+echo. 
+ echo ===== templates\cotizaciones\bloques\cotizacion_vuelos.html =====  
+ echo. 
+ type "templates\cotizaciones\bloques\cotizacion_vuelos.html" 
+) 
+
+===== templates\cotizaciones\bloques\cotizacion_vuelos.html =====
+
+{% load static %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!--
+  BLOQUE: Página "Tus Vuelos" — Lusso Travel
+
+  Cada vuelo es una CAPTURA DE PANTALLA inyectada (Avianca, Google Flights,
+  etc.), no una tarjeta maquetada con CSS -- igual que en el PDF original.
+
+  IMPORTANTE: usa un for-loop -- genera una fila por cada Vuelo
+  asociado a la cotización, en el orden del campo 'orden'.
+
+  CONTEXTO ESPERADO:
+    cotizacion.destino     -> str
+    cotizacion.vuelos.all  -> queryset de Vuelo, cada uno con:
+        .get_tipo_display()  -> "Ida" / "Vuelta"
+        .fecha                -> date
+        .imagen                -> URL (Supabase Storage) de la captura
+
+  ASSETS ESTÁTICOS:
+    logoLargoNegro.png  -> logo oscuro (fondo claro)
+-->
+
+<section class="lusso-page lusso-page--vuelos">
+
+  <div class="f-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <img class="f-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
+
+  <h1 class="f-headline">Tus vuelos</h1>
+
+  <img class="f-churito" src="{% static 'cotizaciones/assets/churito.png' %}" alt="">
+
+  <div class="f-lista">
+    {% for v in cotizacion.vuelos.all %}
+      <img class="f-vuelo__captura" src="{{ v.imagen }}" alt="Vuelo {{ v.get_tipo_display }}">
+    {% endfor %}
+  </div>
+
+</section>
+
+<style>
+  :root {
+    --negro-editorial: #212222;
+    --verde-pastel: #e3e6af;
+    --azul-grisaceo: #a9bdd5;
+    --crema: #fff6f4;
+  }
+
+  .lusso-page {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    page-break-after: always;
+  }
+
+  .lusso-page--vuelos {
+    background: var(--verde-pastel);
+  }
+
+  .f-eyebrow {
+    position: absolute;
+    top: 100px;
+    left: 68px;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+    color: var(--negro-editorial);
+  }
+
+  .f-logo {
+    position: absolute;
+    top: -10px;
+    right: 80px;
+    height: 260px;
+  }
+
+  .f-headline {
+    position: absolute;
+    top: 200px;
+    left: 120px;
+    font-weight: 900;
+    font-size: 100px;
+    letter-spacing: -2px;
+    word-spacing: 8px;
+    color: var(--negro-editorial);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .f-churito {
+  position: absolute;
+  top: -240px;
+  left: 460px;
+  width: 1400px;
+}
+
+  .f-lista {
+    position: absolute;
+    top: 400px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 70px;
+  }
+
+  .f-vuelo__captura {
+  width: 90%;
+  height: 220px;   /* ← agrega esta línea */
+  object-fit: cover;   /* ← agrega esta también, para que no se deforme */
+  border-radius: 8px;
+  display: block;
+}
+</style>

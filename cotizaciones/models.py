@@ -56,6 +56,23 @@ class Cotizacion(models.Model):
         blank=True,
         help_text="URL pública (Supabase Storage) de la foto horizontal grande de esta página.",
     )
+    viaje_sonado_intro_texto = models.TextField(
+        blank=True,
+        help_text="Párrafo 'Al llegar a [destino]...'. Se pre-llena desde DestinoContenido "
+                   "si existe una entrada con el mismo nombre de destino.",
+    )
+    viaje_sonado_intro_imagen = models.URLField(
+        blank=True,
+        help_text="URL del PNG transparente generado automáticamente a partir de viaje_sonado_intro_texto.",
+    )
+    viaje_sonado_texto1 = models.TextField(
+        blank=True,
+        help_text="Párrafo bajo 'Disfrutas cada instante'. Se pre-llena desde DestinoContenido.",
+    )
+    viaje_sonado_texto1_imagen = models.URLField(
+        blank=True,
+        help_text="URL del PNG transparente generado automáticamente a partir de viaje_sonado_texto1.",
+    )
 
     # --- Página "El arte de vivir" (sin texto descriptivo, solo 2 fotos) ---
     imagen_arte_vivir_1 = models.URLField(blank=True)
@@ -95,6 +112,50 @@ class Cotizacion(models.Model):
 
     def __str__(self):
         return f"{self.destino} — {self.lead.nombre} (v{self.version})"
+
+
+class DestinoContenido(models.Model):
+    """
+    Catálogo de contenido reutilizable por destino. Se carga una vez
+    (ej. "Brasil", "Coveñas") y sirve para PRE-LLENAR una cotización
+    nueva a ese destino. Una vez copiado a la cotización, es totalmente
+    independiente: editar la cotización NO modifica este catálogo.
+    """
+    nombre = models.CharField(
+        max_length=150, unique=True,
+        help_text="Nombre exacto del destino, ej: 'Coveñas', 'Brasil'. "
+                   "Se usa para buscar coincidencia al crear una cotización nueva.",
+    )
+
+    # --- Página "Imagina despertar aquí" ---
+    descripcion_destino = models.TextField(blank=True)
+    imagen_destino = models.URLField(blank=True)
+    imagen_destino_secundaria = models.URLField(blank=True)
+
+    # --- Página "Bienvenidos a [destino]" ---
+    bienvenida_descripcion = models.TextField(blank=True)
+    imagen_bienvenida = models.URLField(blank=True)
+
+    # --- Página "Tu viaje soñado" ---
+    imagen_viaje_sonado = models.URLField(blank=True)
+    viaje_sonado_intro_texto = models.TextField(blank=True)
+    viaje_sonado_texto1 = models.TextField(blank=True)
+
+    # --- Página "El arte de vivir" ---
+    imagen_arte_vivir_1 = models.URLField(blank=True)
+    imagen_arte_vivir_2 = models.URLField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "destinos_contenido"
+        ordering = ["nombre"]
+        verbose_name = "Contenido de destino"
+        verbose_name_plural = "Contenidos de destino"
+
+    def __str__(self):
+        return self.nombre
 
 
 class HotelPartner(models.Model):

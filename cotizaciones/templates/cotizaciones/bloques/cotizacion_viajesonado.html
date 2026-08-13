@@ -6,27 +6,30 @@
   BLOQUE: Página 5 — "Tu viaje soñado" — Lusso Travel
 
   El headline y los subtítulos son texto vivo (cortos, una línea, importan
-  bien a Canva). La intro y los párrafos largos bajo cada subtítulo ahora
-  son IMÁGENES fijas -- evita que Canva rompa el espaciado al reimportar
-  párrafos multilínea (ver diagnóstico: el importador de PDF de Canva
-  segmenta texto largo de forma inconsistente, sin relación con el CSS
-  de origen).
+  bien a Canva). La intro y el primer párrafo largo ahora son IMÁGENES
+  GENERADAS POR COTIZACIÓN (ver cotizacion.viaje_sonado_intro_texto /
+  viaje_sonado_texto1 y sus campos *_imagen -- se rasterizan automáticamente
+  vía cotizaciones/servicios/asegurar_imagenes.py antes de exportar el PDF).
+  El segundo párrafo (texto2) sigue siendo una imagen fija de marca, no
+  varía por destino.
 
   CONTEXTO ESPERADO:
-    cotizacion.destino             -> str
-    cotizacion.imagen_viaje_sonado -> URL (Supabase Storage) foto horizontal
+    cotizacion.destino                    -> str
+    cotizacion.imagen_viaje_sonado         -> URL (Supabase Storage) foto horizontal
+    cotizacion.viaje_sonado_intro_texto    -> str (texto plano, editable por asesor)
+    cotizacion.viaje_sonado_intro_imagen   -> URL (Supabase Storage) PNG generado
+    cotizacion.viaje_sonado_texto1         -> str (texto plano, editable por asesor)
+    cotizacion.viaje_sonado_texto1_imagen  -> URL (Supabase Storage) PNG generado
 
   ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
     logoLargoNegro.png      -> logo oscuro (fondo claro)
     caraRedonda.png         -> elemento decorativo, esquina inferior derecha
-    viajesonado_intro.png   -> "Al llegar a [destino]..." (imagen fija)
-    viajesonado_texto1.png  -> párrafo bajo "Disfrutas cada instante" (imagen fija)
-    viajesonado_texto2.png  -> párrafo bajo "Te llevas recuerdos inolvidables" (imagen fija)
+    viajesonado_texto2.png  -> párrafo bajo "Te llevas recuerdos inolvidables" (imagen fija, no cambia)
 -->
 
 <section class="lusso-page lusso-page--viajesonado">
 
-  <div class="v-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <div class="v-eyebrow">{{ cotizacion.destino|upper }}</div>
   <img class="v-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
 
   <img class="v-photo" src="{{ cotizacion.imagen_viaje_sonado }}" alt="{{ cotizacion.destino }}">
@@ -34,11 +37,11 @@
   <div class="v-content">
     <h1 class="v-headline">Tu viaje<br>soñado</h1>
 
-    <img class="v-intro-img" src="{% static 'cotizaciones/assets/viajesonado_intro.png' %}" alt="Al llegar a tu destino, te recibe la brisa del Caribe, el sonido de las olas y la tranquilidad de un destino perfecto para desconectarte de la rutina y comenzar a disfrutar.">
+    <img class="v-intro-img" src="{{ cotizacion.viaje_sonado_intro_imagen }}" alt="{{ cotizacion.viaje_sonado_intro_texto }}">
 
     <div class="v-block">
       <h2 class="v-subtitle">Disfrutas cada instante</h2>
-      <img class="v-text-img" src="{% static 'cotizaciones/assets/viajesonado_texto1.png' %}" alt="Relájate frente al mar, contempla espectaculares amaneceres, recorre sus playas y comparte momentos únicos con quienes más quieres. Cada día está lleno de descanso, diversión y experiencias inolvidables.">
+      <img class="v-text-img" src="{{ cotizacion.viaje_sonado_texto1_imagen }}" alt="{{ cotizacion.viaje_sonado_texto1 }}">
     </div>
 
     <div class="v-block">

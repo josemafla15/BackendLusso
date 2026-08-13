@@ -19,7 +19,7 @@
 
   <img class="b-medusa" src="{% static 'cotizaciones/assets/medusa.png' %}" alt="">
 
-  <div class="b-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <div class="b-eyebrow">{{ cotizacion.destino|upper }}</div>
   <img class="b-logo" src="{% static 'cotizaciones/assets/logoLargoBlanco.png' %}" alt="Lusso Travel">
 
   <h1 class="b-headline">Bienvenidos a<br>{{ cotizacion.destino }}</h1>

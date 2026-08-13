@@ -32,7 +32,7 @@
 
   <img class="h-churito" src="{% static 'cotizaciones/assets/churito.png' %}" alt="">
 
-  <div class="h-eyebrow">COLOMBIA &ndash; SUCRE &ndash; {{ cotizacion.destino|upper }}</div>
+  <div class="h-eyebrow">{{ cotizacion.destino|upper }}</div>
   <img class="h-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
 
   <h1 class="h-headline">{{ h.nombre_display }}</h1>
@@ -119,8 +119,8 @@
     position: absolute;
     top: 100px;
     left: 68px;
-    font-weight: 700;
-    font-size: 20px;
+    font-weight: 800;
+    font-size: 25px;
     letter-spacing: 0.5px;
     color: var(--negro-editorial);
   }

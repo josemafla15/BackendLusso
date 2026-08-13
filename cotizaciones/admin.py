@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Cotizacion, CotizacionHotel, HotelImagen, HotelPartner, Vuelo
+from .models import Cotizacion, CotizacionHotel, DestinoContenido, HotelImagen, HotelPartner, Vuelo
 
 
 class CotizacionHotelInline(admin.TabularInline):
@@ -31,6 +31,9 @@ class CotizacionAdmin(admin.ModelAdmin):
     readonly_fields = ("id", "created_at", "updated_at")
     inlines = [CotizacionHotelInline, VueloInline]
 
+    class Media:
+        js = ("cotizaciones/admin/prefill_destino.js",)
+
 
 class HotelImagenInline(admin.TabularInline):
     model = HotelImagen
@@ -45,3 +48,9 @@ class HotelPartnerAdmin(admin.ModelAdmin):
     list_filter = ("ciudad", "activo")
     search_fields = ("nombre", "ciudad")
     inlines = [HotelImagenInline]
+
+
+@admin.register(DestinoContenido)
+class DestinoContenidoAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "updated_at")
+    search_fields = ("nombre",)
