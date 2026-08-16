@@ -12,6 +12,8 @@ from cotizaciones.storage import subir_archivo_temporal
 from leads.models import Lead
 from pagos.models import Pago
 
+from rest_framework.decorators import action
+
 from .serializers import (
     CotizacionSerializer,
     DestinoContenidoSerializer,
@@ -100,6 +102,34 @@ class CotizacionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(asesor=self.request.user)
+
+    @action(detail=True, methods=["post"], url_path="generar-pdf")
+    def generar_pdf(self, request, pk=None):
+        """
+        POST /api/cotizaciones/<id>/generar-pdf/
+        Body: {"nombre_archivo": "Cotizacion_Brasil_JuanPerez"}
+
+        Encola la generación del PDF en Celery y responde de inmediato.
+        El front debe hacer polling a GET /api/cotizaciones/<id>/ y
+        esperar a que pdf_url deje de estar vacío.
+        """
+        from .tasks import generar_pdf_cotizacion_task
+
+        cotizacion = self.get_object()
+        nombre_archivo = request.data.get("nombre_archivo", "").strip()
+
+        if not nombre_archivo:
+            return Response({"detail": "Falta 'nombre_archivo'."}, status=400)
+
+        # Se limpia antes de encolar, para que el polling del front
+        # detecte de forma confiable cuándo terminó (incluso si es una
+        # regeneración y el pdf_url anterior tenía el mismo valor).
+        cotizacion.pdf_url = ""
+        cotizacion.save(update_fields=["pdf_url"])
+
+        generar_pdf_cotizacion_task.delay(str(cotizacion.id), nombre_archivo)
+
+        return Response({"detail": "Generación de PDF encolada."}, status=202)
 
 
 class PagoViewSet(viewsets.ModelViewSet):

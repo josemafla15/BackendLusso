@@ -109,9 +109,13 @@ DATABASES = {
 }
 
 
+# Supabase Storage (subida de imágenes generadas server-side y del PDF
+# final). No confundir con DATABASE_URL de arriba -- esto es para el
+# bucket de Storage, no para Postgres.
+
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_SERVICE_KEY = os.environ["SUPABASE_SERVICE_KEY"]
-SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "cotizaciones")
+SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "lusso-cotizaciones")
 
 
 # Password validation
@@ -144,6 +148,8 @@ USE_I18N = True
 
 USE_TZ = True
 
+USE_THOUSAND_SEPARATOR = True
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -161,6 +167,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_TASK_SERIALIZER = "json"
+CELERY_WORKER_STATE_DB = None
 
 # --- API (DRF + JWT + CORS) ---
 

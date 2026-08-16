@@ -305,14 +305,6 @@ class Vuelo(models.Model):
 
     cotizacion = models.ForeignKey(Cotizacion, on_delete=models.CASCADE, related_name="vuelos")
     tipo = models.CharField(choices=Tipo.choices, max_length=10)
-    fecha = models.DateField()
-    origen = models.CharField(max_length=10)   # código aeropuerto, ej "PSO"
-    destino = models.CharField(max_length=10)  # código aeropuerto, ej "MTR"
-    hora_salida = models.TimeField()
-    hora_llegada = models.TimeField()
-    aerolinea = models.CharField(max_length=100)
-    paradas = models.PositiveIntegerField(default=0)
-    duracion = models.CharField(max_length=20, blank=True)  # ej "4h 40m"
     imagen = models.URLField(
         blank=True,
         help_text="URL pública (Supabase Storage) de la captura de pantalla del vuelo (Avianca, Google Flights, etc.)",
@@ -326,5 +318,4 @@ class Vuelo(models.Model):
         verbose_name_plural = "Vuelos"
 
     def __str__(self):
-        return f"{self.get_tipo_display()}: {self.origen} → {self.destino} ({self.fecha})"
-
+        return f"{self.get_tipo_display()} — {self.cotizacion}"

@@ -16,10 +16,7 @@ class CotizacionHotelInline(admin.TabularInline):
 class VueloInline(admin.TabularInline):
     model = Vuelo
     extra = 1
-    fields = (
-        "orden", "tipo", "fecha", "origen", "destino",
-        "hora_salida", "hora_llegada", "aerolinea", "paradas", "duracion",
-    )
+    fields = ("orden", "tipo", "imagen")
     ordering = ("orden",)
 
 

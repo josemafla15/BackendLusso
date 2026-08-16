@@ -86,12 +86,11 @@ class HotelPartnerSerializer(serializers.ModelSerializer):
         model = HotelPartner
         fields = [
             "id", "destino", "nombre", "ciudad", "direccion", "descripcion",
-            "horario_restaurante", "activo", "imagenes",
+            "activo", "imagenes",
         ]
 
     def get_imagenes(self, obj):
         return list(obj.imagenes.order_by("orden").values_list("url", flat=True))
-
 
 class CotizacionHotelSerializer(serializers.ModelSerializer):
     nombre_display = serializers.CharField(read_only=True)
@@ -111,12 +110,7 @@ class VueloSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vuelo
-        fields = [
-            "id", "tipo", "tipo_display", "fecha", "origen", "destino",
-            "hora_salida", "hora_llegada", "aerolinea", "paradas",
-            "duracion", "imagen", "orden",
-        ]
-
+        fields = ["id", "tipo", "tipo_display", "imagen", "orden"]
 
 class CotizacionSerializer(serializers.ModelSerializer):
     asesor = UserSerializer(read_only=True)
@@ -159,6 +153,25 @@ class CotizacionSerializer(serializers.ModelSerializer):
 
         return cotizacion
 
+    def update(self, instance, validated_data):
+        hoteles_data = validated_data.pop("hoteles", None)
+        vuelos_data = validated_data.pop("vuelos", None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if hoteles_data is not None:
+            instance.hoteles.all().delete()
+            for hotel_data in hoteles_data:
+                CotizacionHotel.objects.create(cotizacion=instance, **hotel_data)
+
+        if vuelos_data is not None:
+            instance.vuelos.all().delete()
+            for vuelo_data in vuelos_data:
+                Vuelo.objects.create(cotizacion=instance, **vuelo_data)
+
+        return instance
 
 class PagoSerializer(serializers.ModelSerializer):
     lead_nombre = serializers.CharField(source="lead.nombre", read_only=True, default=None)
