@@ -1,4 +1,5 @@
 {% load static %}
+{% load humanize %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
@@ -39,7 +40,7 @@
       <!-- Esquema de múltiples líneas -->
       {% for p in cotizacion.precios.all %}
         <div class="i-linea">
-          <span class="i-linea__precio">$ {{ p.precio|floatformat:0 }}</span>
+          <span class="i-linea__precio">$ {{ p.precio|floatformat:0|intcomma }}</span>
           <span class="i-linea__etiqueta">{{ p.etiqueta }}</span>
         </div>
         {% if p.nota %}
@@ -48,7 +49,7 @@
       {% endfor %}
 
       {% if cotizacion.precio_total %}
-        <div class="i-total">Total: $ {{ cotizacion.precio_total|floatformat:0 }}</div>
+        <div class="i-total">Total: $ {{ cotizacion.precio_total|floatformat:0|intcomma }}</div>
       {% elif cotizacion.precio_nota_total %}
         <div class="i-nota-total">{{ cotizacion.precio_nota_total }}</div>
       {% endif %}
@@ -58,11 +59,12 @@
       <div class="i-simple">
   {% if cotizacion.precio_por_persona %}
     <div class="i-label-persona">Costo persona</div>
-    <div class="i-valor-persona">$ {{ cotizacion.precio_por_persona|floatformat:0 }}</div>
+    <div class="i-valor-persona">$ {{ cotizacion.precio_por_persona|floatformat:0|intcomma }}</div>
+
   {% endif %}
   {% if cotizacion.precio_total %}
     <div class="i-label-total">Costo total</div>
-    <div class="i-valor-total">$ {{ cotizacion.precio_total|floatformat:0 }}</div>
+    <div class="i-valor-total">$ {{ cotizacion.precio_total|floatformat:0|intcomma }}</div>
   {% endif %}
 </div>
     {% endif %}

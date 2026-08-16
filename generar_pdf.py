@@ -18,10 +18,32 @@ import sys
 
 from playwright.sync_api import sync_playwright
 
+from cotizaciones.servicios.asegurar_imagenes import (
+    asegurar_imagenes_despertar_bienvenidos,
+    asegurar_imagenes_viajesonado,
+)
+
 COTIZACION_ID_DEFAULT = "7ac00c34-9dbb-48ab-859b-ab5f9922dcba"
+
+# Bloques que necesitan las imágenes rasterizadas (texto -> PNG transparente)
+# al día antes de exportar, para que Canva no rompa el espaciado del texto.
+BLOQUES_CON_TEXTOS_RASTERIZADOS = {"completa", "viajesonado", "despertar", "bienvenidos"}
 
 
 def generar_pdf(bloque, cotizacion_id):
+    if bloque in BLOQUES_CON_TEXTOS_RASTERIZADOS:
+        import django
+        import os
+
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+        django.setup()
+
+        from cotizaciones.models import Cotizacion
+
+        cotizacion = Cotizacion.objects.get(id=cotizacion_id)
+        asegurar_imagenes_viajesonado(cotizacion)
+        asegurar_imagenes_despertar_bienvenidos(cotizacion)
+
     url = f"http://127.0.0.1:8000/cotizaciones/preview/{cotizacion_id}/{bloque}/"
     output = f"cotizacion_{bloque}_{cotizacion_id[:8]}.pdf"
 
@@ -31,12 +53,12 @@ def generar_pdf(bloque, cotizacion_id):
         page.goto(url, wait_until="networkidle")
 
         page.pdf(
-    path=output,
-    width="20in",     # 1920px / 96dpi
-    height="11.25in", # 1080px / 96dpi
-    print_background=True,
-    margin={"top": "0px", "bottom": "0px", "left": "0px", "right": "0px"},
-)
+            path=output,
+            width="20in",     # 1920px / 96dpi
+            height="11.25in", # 1080px / 96dpi
+            print_background=True,
+            margin={"top": "0px", "bottom": "0px", "left": "0px", "right": "0px"},
+        )
         browser.close()
 
     print(f"PDF generado: {output}")

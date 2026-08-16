@@ -32,8 +32,7 @@
   {{ cotizacion.fecha_inicio|date:"d" }}&ndash;{{ cotizacion.fecha_fin|date:"d" }} de {{ cotizacion.fecha_fin|date:"F, Y" }}
 </div>
 <div class="bv-dates__lead">{{ cotizacion.lead.nombre }}</div>
-<div class="bv-dates__destino">{{ cotizacion.destino }}</div>
-
+<div class="bv-dates__destino">{{ cotizacion.destino|title }}</div>
   <h1 class="bv-headline">Buen<br>viaje</h1>
 
   <div class="bv-contacto">

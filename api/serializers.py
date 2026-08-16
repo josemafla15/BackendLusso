@@ -2,7 +2,9 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from chatbot.models import Mensaje
-from cotizaciones.models import Cotizacion
+from cotizaciones.models import (
+    Cotizacion, CotizacionHotel, DestinoContenido, HotelPartner, Vuelo,
+)
 from leads.models import Lead
 from pagos.models import Pago
 
@@ -60,19 +62,102 @@ class LeadDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "origen", "created_at", "updated_at"]
 
 
+class DestinoContenidoSerializer(serializers.ModelSerializer):
+    """
+    Solo lectura -- el catálogo se carga/edita por el admin de Django,
+    no desde el front de cotizaciones. Se usa para el prefill al elegir
+    un destino en el formulario nuevo.
+    """
+    class Meta:
+        model = DestinoContenido
+        fields = [
+            "id", "nombre",
+            "descripcion_destino", "imagen_destino", "imagen_destino_secundaria",
+            "bienvenida_descripcion", "imagen_bienvenida",
+            "imagen_viaje_sonado", "viaje_sonado_intro_texto", "viaje_sonado_texto1",
+            "imagen_arte_vivir_1", "imagen_arte_vivir_2",
+        ]
+
+
+class HotelPartnerSerializer(serializers.ModelSerializer):
+    imagenes = serializers.SerializerMethodField()
+
+    class Meta:
+        model = HotelPartner
+        fields = [
+            "id", "destino", "nombre", "ciudad", "direccion", "descripcion",
+            "horario_restaurante", "activo", "imagenes",
+        ]
+
+    def get_imagenes(self, obj):
+        return list(obj.imagenes.order_by("orden").values_list("url", flat=True))
+
+
+class CotizacionHotelSerializer(serializers.ModelSerializer):
+    nombre_display = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = CotizacionHotel
+        fields = [
+            "id", "hotel", "nombre_libre", "noches",
+            "tipo_habitacion", "plan_alimentacion",
+            "datos_importantes", "precios",
+            "orden", "nombre_display",
+        ]
+
+
+class VueloSerializer(serializers.ModelSerializer):
+    tipo_display = serializers.CharField(source="get_tipo_display", read_only=True)
+
+    class Meta:
+        model = Vuelo
+        fields = [
+            "id", "tipo", "tipo_display", "fecha", "origen", "destino",
+            "hora_salida", "hora_llegada", "aerolinea", "paradas",
+            "duracion", "imagen", "orden",
+        ]
+
+
 class CotizacionSerializer(serializers.ModelSerializer):
     asesor = UserSerializer(read_only=True)
     lead_nombre = serializers.CharField(source="lead.nombre", read_only=True)
+    hoteles = CotizacionHotelSerializer(many=True, required=False)
+    vuelos = VueloSerializer(many=True, required=False)
 
     class Meta:
         model = Cotizacion
         fields = [
             "id", "lead", "lead_nombre", "asesor", "destino",
-            "fecha_inicio", "fecha_fin", "num_personas", "precio",
+            "fecha_inicio", "fecha_fin", "num_personas",
+            "descripcion_destino", "imagen_destino", "imagen_destino_secundaria",
+            "bienvenida_descripcion", "imagen_bienvenida",
+            "imagen_viaje_sonado", "viaje_sonado_intro_texto", "viaje_sonado_intro_imagen",
+            "viaje_sonado_texto1", "viaje_sonado_texto1_imagen",
+            "imagen_arte_vivir_1", "imagen_arte_vivir_2",
+            "precio_total", "precio_por_persona", "precio_nota_total",
             "incluye", "no_incluye", "vigencia", "version", "estado",
-            "pdf_url", "notas", "created_at", "updated_at",
+            "pdf_url", "notas", "hoteles", "vuelos",
+            "created_at", "updated_at",
         ]
-        read_only_fields = ["id", "asesor", "version", "pdf_url", "created_at", "updated_at"]
+        read_only_fields = [
+            "id", "asesor", "version", "pdf_url",
+            "viaje_sonado_intro_imagen", "viaje_sonado_texto1_imagen",
+            "created_at", "updated_at",
+        ]
+
+    def create(self, validated_data):
+        hoteles_data = validated_data.pop("hoteles", [])
+        vuelos_data = validated_data.pop("vuelos", [])
+
+        cotizacion = Cotizacion.objects.create(**validated_data)
+
+        for hotel_data in hoteles_data:
+            CotizacionHotel.objects.create(cotizacion=cotizacion, **hotel_data)
+
+        for vuelo_data in vuelos_data:
+            Vuelo.objects.create(cotizacion=cotizacion, **vuelo_data)
+
+        return cotizacion
 
 
 class PagoSerializer(serializers.ModelSerializer):

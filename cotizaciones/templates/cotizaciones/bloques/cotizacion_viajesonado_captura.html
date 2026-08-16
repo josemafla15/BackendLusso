@@ -2,8 +2,8 @@
 <!--
   Uso EXCLUSIVO para generar_captura_transparente.py -- nunca se
   incluye en el PDF final. Muestra el texto crudo con el mismo
-  estilo visual que tenía el diseño original de viajesonado, para
-  que el screenshot salga idéntico a la imagen que reemplaza.
+  estilo visual que tiene cada párrafo en su página real, para que
+  el screenshot salga idéntico a como se vería ahí.
 -->
 <div class="v-intro" style="width:700px; font-weight:400; font-size:22px; line-height:1.4; letter-spacing:-0.2px; color:#212222; font-family:'Poppins',sans-serif;">
   {{ cotizacion.viaje_sonado_intro_texto }}
@@ -13,4 +13,12 @@
   <div class="v-text" style="width:700px; font-weight:400; font-size:22px; line-height:1.4; letter-spacing:-0.2px; color:#212222; font-family:'Poppins',sans-serif;">
     {{ cotizacion.viaje_sonado_texto1 }}
   </div>
+</div>
+
+<div class="d-body-captura" style="width:640px; font-weight:400; font-size:22px; line-height:1.4; letter-spacing:-0.2px; color:#212222; font-family:'Poppins',sans-serif;">
+  {{ cotizacion.descripcion_destino }}
+</div>
+
+<div class="b-body-captura" style="width:700px; font-weight:400; font-size:22px; line-height:1.4; letter-spacing:-0.2px; color:#fff6f4; font-family:'Poppins',sans-serif;">
+  {{ cotizacion.bienvenida_descripcion }}
 </div>

@@ -6,7 +6,10 @@ from .models import Cotizacion, CotizacionHotel, DestinoContenido, HotelImagen, 
 class CotizacionHotelInline(admin.TabularInline):
     model = CotizacionHotel
     extra = 1
-    fields = ("orden", "hotel", "nombre_libre", "noches", "tipo_habitacion", "plan_alimentacion")
+    fields = (
+        "orden", "hotel", "nombre_libre", "noches", "tipo_habitacion",
+        "plan_alimentacion", "datos_importantes", "precios",
+    )
     ordering = ("orden",)
 
 

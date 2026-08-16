@@ -31,7 +31,7 @@
       {{ cotizacion.fecha_inicio|date:"d" }}&ndash;{{ cotizacion.fecha_fin|date:"d" }} de {{ cotizacion.fecha_fin|date:"F, Y" }}
     </div>
     <div class="p-dates__lead">{{ cotizacion.lead.nombre }}</div>
-    <div class="p-dates__destino">{{ cotizacion.destino }}</div>
+    <div class="p-dates__destino">{{ cotizacion.destino|title }}</div>
   </div>
 
   <!-- swirl_transparente.png reutilizado x2: mismo archivo, distinta orientación por CSS -->

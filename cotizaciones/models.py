@@ -32,6 +32,10 @@ class Cotizacion(models.Model):
         blank=True,
         help_text="Párrafo descriptivo del destino para la página 'Imagina despertar aquí'.",
     )
+    descripcion_destino_imagen = models.URLField(
+        blank=True,
+        help_text="URL del PNG transparente generado automáticamente a partir de descripcion_destino.",
+    )
     imagen_destino = models.URLField(
         blank=True,
         help_text="URL pública (Supabase Storage) de la foto principal del destino.",
@@ -45,6 +49,10 @@ class Cotizacion(models.Model):
     bienvenida_descripcion = models.TextField(
         blank=True,
         help_text="Párrafo descriptivo para la página 'Bienvenidos a [destino]'.",
+    )
+    bienvenida_descripcion_imagen = models.URLField(
+        blank=True,
+        help_text="URL del PNG transparente generado automáticamente a partir de bienvenida_descripcion.",
     )
     imagen_bienvenida = models.URLField(
         blank=True,
@@ -113,7 +121,6 @@ class Cotizacion(models.Model):
     def __str__(self):
         return f"{self.destino} — {self.lead.nombre} (v{self.version})"
 
-
 class DestinoContenido(models.Model):
     """
     Catálogo de contenido reutilizable por destino. Se carga una vez
@@ -163,11 +170,16 @@ class HotelPartner(models.Model):
     Catálogo reutilizable de hoteles. Se llena una sola vez por hotel
     y se reutiliza en todas las cotizaciones que lo incluyan.
     """
+    destino = models.ForeignKey(
+        DestinoContenido, on_delete=models.PROTECT, null=True, blank=True,
+        related_name="hoteles",
+        help_text="Destino al que pertenece este hotel. Se usa para filtrar "
+                   "qué hoteles mostrar al elegir un destino en el formulario.",
+    )
     nombre = models.CharField(max_length=200)
     ciudad = models.CharField(max_length=100)
     direccion = models.TextField(blank=True)
     descripcion = models.TextField(blank=True)
-    horario_restaurante = models.CharField(max_length=100, blank=True)
     activo = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -180,7 +192,6 @@ class HotelPartner(models.Model):
 
     def __str__(self):
         return f"{self.nombre} — {self.ciudad}"
-
 
 class HotelImagen(models.Model):
     """
@@ -205,7 +216,8 @@ class CotizacionHotel(models.Model):
     """
     Instancia de un hotel dentro de UNA cotización específica.
     Guarda lo que varía por cliente/viaje (noches, tipo de habitación,
-    plan de alimentación), no lo que es fijo del hotel.
+    plan de alimentación, datos importantes y precios), no lo que es
+    fijo del hotel en sí.
     """
     cotizacion = models.ForeignKey(Cotizacion, on_delete=models.CASCADE, related_name="hoteles")
     hotel = models.ForeignKey(
@@ -218,6 +230,23 @@ class CotizacionHotel(models.Model):
     noches = models.PositiveIntegerField()
     tipo_habitacion = models.CharField(max_length=150, blank=True)
     plan_alimentacion = models.CharField(max_length=150, blank=True)
+
+    datos_importantes = models.JSONField(
+        default=list, blank=True,
+        help_text="Datos importantes de la estadía, en viñetas (ej. horario de "
+                   "restaurante, check-in, check-out). Se carga por cotización, "
+                   "puede variar según el hotel/cliente. Ej: "
+                   "['Horario restaurante: 6:00 A.M a 10:00 P.M', 'Check-in: 3:00 PM']",
+    )
+    precios = models.JSONField(
+        default=list, blank=True,
+        help_text="Opciones de precio para este hotel, en viñetas de texto libre "
+                   "(reemplaza mostrar el precio en la página de inversión cuando "
+                   "hay varios hoteles a elegir). Ej: "
+                   "['$2.500.000 x persona - Estándar - Alimentación: DESAYUNOS', "
+                   "'$2.650.000 x persona - Vista al mar']",
+    )
+
     orden = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -233,7 +262,6 @@ class CotizacionHotel(models.Model):
     @property
     def nombre_display(self):
         return self.hotel.nombre if self.hotel else self.nombre_libre
-
 
 class PrecioItem(models.Model):
     """
@@ -299,3 +327,4 @@ class Vuelo(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()}: {self.origen} → {self.destino} ({self.fecha})"
+
