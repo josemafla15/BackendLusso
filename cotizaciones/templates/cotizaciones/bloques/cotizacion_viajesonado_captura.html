@@ -22,3 +22,25 @@
 <div class="b-body-captura" style="width:700px; font-weight:400; font-size:22px; line-height:1.4; letter-spacing:-0.2px; color:#fff6f4; font-family:'Poppins',sans-serif;">
   {{ cotizacion.bienvenida_descripcion }}
 </div>
+
+<div class="bv-contacto-captura" style="display:flex; gap:300px; font-weight:400; font-size:20px; color:#fff6f4; font-family:'Poppins',sans-serif; background:transparent;">
+  <span class="bv-tel-captura">+57 320 550 9589</span>
+  <span class="bv-ig-captura">@lussotravelpasto</span>
+  <span class="bv-mail-captura">contacto@lussotravel.co</span>
+</div>
+
+<div class="captura-fecha" style="display:inline-block; white-space:nowrap; font-weight:400; font-size:32px; color:#fff6f4; font-family:'Poppins',sans-serif;">
+  {{ cotizacion.fecha_inicio|date:"d" }}&ndash;{{ cotizacion.fecha_fin|date:"d" }} de {{ cotizacion.fecha_fin|date:"F, Y" }}
+</div>
+
+<div class="captura-nombre" style="display:inline-block; white-space:nowrap; font-weight:600; font-size:32px; color:#fff6f4; font-family:'Poppins',sans-serif;">
+    {{ cotizacion.nombre_cliente|default:cotizacion.lead.nombre }}
+</div>
+
+<div class="captura-destino-portada" style="display:inline-block; white-space:nowrap; font-style:italic; font-weight:400; font-size:37px; color:#fff6f4; font-family:'Poppins',sans-serif;">
+  {{ cotizacion.destino|title }}
+</div>
+
+<div class="captura-destino-buenviaje" style="display:inline-block; white-space:nowrap; font-style:italic; font-weight:400; font-size:36px; color:#fff6f4; font-family:'Poppins',sans-serif;">
+  {{ cotizacion.destino|title }}
+</div>

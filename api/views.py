@@ -100,6 +100,22 @@ class CotizacionViewSet(viewsets.ModelViewSet):
     search_fields = ["destino", "lead__nombre"]
     http_method_names = ["get", "post", "patch", "head", "options"]
 
+    def get_queryset(self):
+        """
+        Además de estado/lead/asesor (filterset_fields) y search (search_fields),
+        soporta filtrado por rango de fechas sobre updated_at:
+        GET /api/cotizaciones/?fecha_desde=2026-08-01&fecha_hasta=2026-08-31
+        Ambos parámetros son opcionales e independientes entre sí.
+        """
+        qs = super().get_queryset()
+        fecha_desde = self.request.query_params.get("fecha_desde")
+        fecha_hasta = self.request.query_params.get("fecha_hasta")
+        if fecha_desde:
+            qs = qs.filter(updated_at__date__gte=fecha_desde)
+        if fecha_hasta:
+            qs = qs.filter(updated_at__date__lte=fecha_hasta)
+        return qs
+
     def perform_create(self, serializer):
         serializer.save(asesor=self.request.user)
 
@@ -113,7 +129,7 @@ class CotizacionViewSet(viewsets.ModelViewSet):
         El front debe hacer polling a GET /api/cotizaciones/<id>/ y
         esperar a que pdf_url deje de estar vacío.
         """
-        from .tasks import generar_pdf_cotizacion_task
+        from cotizaciones.tasks import generar_pdf_cotizacion_task
 
         cotizacion = self.get_object()
         nombre_archivo = request.data.get("nombre_archivo", "").strip()
@@ -130,7 +146,6 @@ class CotizacionViewSet(viewsets.ModelViewSet):
         generar_pdf_cotizacion_task.delay(str(cotizacion.id), nombre_archivo)
 
         return Response({"detail": "Generación de PDF encolada."}, status=202)
-
 
 class PagoViewSet(viewsets.ModelViewSet):
     """El asesor puede crear pagos desde el dashboard (GET/POST).

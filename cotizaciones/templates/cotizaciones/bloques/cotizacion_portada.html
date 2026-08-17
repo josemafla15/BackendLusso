@@ -4,10 +4,9 @@
   Se incluye dentro del template maestro más adelante (cotizacion_completa.html).
 
   CONTEXTO ESPERADO (pásalo desde la vista/tarea Celery):
-    cotizacion.destino          -> str, ej: "Coveñas"
-    cotizacion.fecha_inicio     -> date
-    cotizacion.fecha_fin        -> date
-    cotizacion.lead.nombre      -> str
+    cotizacion.fecha_viaje_imagen        -> URL PNG transparente (rango de fechas)
+    cotizacion.lead_nombre_imagen        -> URL PNG transparente (nombre del cliente)
+    cotizacion.destino_portada_imagen    -> URL PNG transparente (destino, itálica)
 
   ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
     logoApilado.png          -> logo Lusso Travel (versión apilada, crema/blanca)
@@ -27,11 +26,9 @@
   <img class="p-logo-mark" src="{% static 'cotizaciones/assets/logoApilado.png' %}" alt="Lusso Travel">
 
   <div class="p-dates">
-    <div class="p-dates__range">
-      {{ cotizacion.fecha_inicio|date:"d" }}&ndash;{{ cotizacion.fecha_fin|date:"d" }} de {{ cotizacion.fecha_fin|date:"F, Y" }}
-    </div>
-    <div class="p-dates__lead">{{ cotizacion.lead.nombre }}</div>
-    <div class="p-dates__destino">{{ cotizacion.destino|title }}</div>
+    <img class="p-dates__range" src="{{ cotizacion.fecha_viaje_imagen }}" alt="">
+    <img class="p-dates__lead" src="{{ cotizacion.lead_nombre_imagen }}" alt="{{ cotizacion.lead.nombre }}">
+    <img class="p-dates__destino" src="{{ cotizacion.destino_portada_imagen }}" alt="{{ cotizacion.destino }}">
   </div>
 
   <!-- swirl_transparente.png reutilizado x2: mismo archivo, distinta orientación por CSS -->
@@ -88,7 +85,7 @@
     height: 300px;
   }
 
-  /* ---------- Fechas ---------- */
+  /* ---------- Fechas (ahora imágenes, no texto vivo) ---------- */
   .p-dates {
     position: absolute;
     top: 78px;
@@ -98,22 +95,24 @@
     line-height: 1.05;
   }
   .p-dates__range {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 400;
-    font-size: 32px;
+    display: block;
+    margin-left: auto;
+    height: 32px;
+    width: auto;
   }
   .p-dates__lead {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 24px;
+    display: block;
+    margin-left: auto;
     margin-top: 4px;
+    height: 32px;
+    width: auto;
   }
   .p-dates__destino {
-    font-family: 'Poppins', sans-serif;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 37px;
+    display: block;
+    margin-left: auto;
     margin-top: -4px;
+    height: 37px;
+    width: auto;
   }
 
   /* ---------- Doodles (mismo swirl_transparente.png, reorientado por instancia) ---------- */

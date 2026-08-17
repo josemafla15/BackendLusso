@@ -20,6 +20,7 @@ from playwright.sync_api import sync_playwright
 
 from cotizaciones.servicios.asegurar_imagenes import (
     asegurar_imagenes_despertar_bienvenidos,
+    asegurar_imagenes_portada_buenviaje,
     asegurar_imagenes_viajesonado,
 )
 
@@ -27,7 +28,7 @@ COTIZACION_ID_DEFAULT = "7ac00c34-9dbb-48ab-859b-ab5f9922dcba"
 
 # Bloques que necesitan las imágenes rasterizadas (texto -> PNG transparente)
 # al día antes de exportar, para que Canva no rompa el espaciado del texto.
-BLOQUES_CON_TEXTOS_RASTERIZADOS = {"completa", "viajesonado", "despertar", "bienvenidos"}
+BLOQUES_CON_TEXTOS_RASTERIZADOS = {"completa", "viajesonado", "despertar", "bienvenidos", "portada", "buenviaje"}
 
 
 def generar_pdf(bloque, cotizacion_id):
@@ -43,6 +44,7 @@ def generar_pdf(bloque, cotizacion_id):
         cotizacion = Cotizacion.objects.get(id=cotizacion_id)
         asegurar_imagenes_viajesonado(cotizacion)
         asegurar_imagenes_despertar_bienvenidos(cotizacion)
+        asegurar_imagenes_portada_buenviaje(cotizacion)
 
     url = f"http://127.0.0.1:8000/cotizaciones/preview/{cotizacion_id}/{bloque}/"
     output = f"cotizacion_{bloque}_{cotizacion_id[:8]}.pdf"

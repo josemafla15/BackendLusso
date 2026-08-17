@@ -15,16 +15,18 @@ def generar_pdf_cotizacion_task(self, cotizacion_id, nombre_archivo):
     sube a Supabase Storage, en el mismo bucket que las imágenes
     (lusso-cotizaciones), bajo pdfs/<cotizacion_id>/<nombre_archivo>.pdf
 
-    Antes de renderizar, se asegura de que los párrafos ligados al
-    destino (despertar, bienvenidos, viaje soñado) ya tengan su imagen
-    transparente generada -- si el texto cambió desde la última vez,
-    se regenera acá mismo.
+    Antes de renderizar, se asegura de que todos los textos ligados al
+    destino/cliente (despertar, bienvenidos, viaje soñado, fecha/nombre/
+    destino de portada y buenviaje) ya tengan su imagen transparente
+    generada -- si el texto cambió desde la última vez, se regenera
+    acá mismo.
     """
     from playwright.sync_api import sync_playwright
 
     from .models import Cotizacion
     from .servicios.asegurar_imagenes import (
         asegurar_imagenes_despertar_bienvenidos,
+        asegurar_imagenes_portada_buenviaje,
         asegurar_imagenes_viajesonado,
     )
     from .storage import subir_a_supabase
@@ -34,8 +36,9 @@ def generar_pdf_cotizacion_task(self, cotizacion_id, nombre_archivo):
 
         asegurar_imagenes_viajesonado(cotizacion)
         asegurar_imagenes_despertar_bienvenidos(cotizacion)
+        asegurar_imagenes_portada_buenviaje(cotizacion)
 
-        base_url = os.environ.get("SITE_URL", "http://127.0.0.1:8000")
+        base_url = os.environ.get("BACKEND_URL", "http://127.0.0.1:8000")
         url = f"{base_url}/cotizaciones/preview/{cotizacion_id}/completa/"
 
         nombre_limpio = slugify(nombre_archivo.rsplit(".pdf", 1)[0]) or str(cotizacion_id)

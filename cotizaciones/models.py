@@ -5,7 +5,6 @@ from django.db import models
 
 from leads.models import Lead
 
-
 class Cotizacion(models.Model):
     class Estado(models.TextChoices):
         BORRADOR = "borrador", "Borrador"
@@ -23,6 +22,13 @@ class Cotizacion(models.Model):
         related_name="cotizaciones",
     )
     destino = models.TextField()
+    nombre_cliente = models.CharField(
+        max_length=200, blank=True,
+        help_text="Nombre que aparece en portada y buen viaje del PDF. Se "
+                   "prellena con el nombre del lead, pero el asesor puede "
+                   "cambiarlo (ej. si la cotización va a nombre de otra "
+                   "persona distinta a quien contactó).",
+    )
     fecha_inicio = models.DateField(null=True, blank=True)
     fecha_fin = models.DateField(null=True, blank=True)
     num_personas = models.PositiveIntegerField(default=1)
@@ -87,9 +93,9 @@ class Cotizacion(models.Model):
     imagen_arte_vivir_2 = models.URLField(blank=True)
 
     # --- Precio ---
-    # precio_total: opcional -- algunas cotizaciones no tienen un total
-    # único (ej. cuando hay varios hoteles a elegir, cada uno con su propio
-    # precio). En ese caso se usa precio_nota_total en su lugar.
+    # precio_total / precio_por_persona / PrecioItem: quedan sin usar
+    # activamente por ahora (confirmado que ningún otro módulo los lee),
+    # se reemplazan por inversion_lineas para el flujo nuevo del front.
     precio_total = models.DecimalField(
         max_digits=12, decimal_places=0, null=True, blank=True
     )  # COP
@@ -100,6 +106,30 @@ class Cotizacion(models.Model):
         blank=True,
         help_text="Mensaje alternativo cuando no hay un total único, ej: "
                    "'Según la elección del hotel y adicionales, consulta el total con tu asesor'",
+    )
+    inversion_lineas = models.JSONField(
+        default=list, blank=True,
+        help_text="Líneas de precio en texto libre, una debajo de otra. "
+                   "Ej: ['$ 9.600.000 Tarifa sencilla', '$ 6.800.000 Tarifa doble']. "
+                   "Solo aplica si la cotización tiene 0 o 1 hotel -- con 2+, la "
+                   "página de inversión muestra un mensaje fijo en su lugar.",
+    )
+
+    fecha_viaje_imagen = models.URLField(
+        blank=True,
+        help_text="PNG transparente con el rango de fechas, compartido entre portada y buenviaje.",
+    )
+    lead_nombre_imagen = models.URLField(
+        blank=True,
+        help_text="PNG transparente con el nombre del cliente, compartido entre portada y buenviaje.",
+    )
+    destino_portada_imagen = models.URLField(
+        blank=True,
+        help_text="PNG transparente del destino, estilo itálico de portada.",
+    )
+    destino_buenviaje_imagen = models.URLField(
+        blank=True,
+        help_text="PNG transparente del destino, estilo normal de buenviaje.",
     )
 
     incluye = models.JSONField(default=list, blank=True)
@@ -120,7 +150,6 @@ class Cotizacion(models.Model):
 
     def __str__(self):
         return f"{self.destino} — {self.lead.nombre} (v{self.version})"
-
 class DestinoContenido(models.Model):
     """
     Catálogo de contenido reutilizable por destino. Se carga una vez

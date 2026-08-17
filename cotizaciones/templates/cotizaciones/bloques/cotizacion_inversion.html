@@ -1,32 +1,30 @@
 {% load static %}
-{% load humanize %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
 <!--
   BLOQUE: Página "Inversión" — Lusso Travel
 
-  DOS ESQUEMAS, según qué datos tenga la cotización:
+  ESTA PÁGINA SIEMPRE SE MUESTRA (a diferencia de antes, ya no
+  desaparece con 2+ hoteles).
 
-  1) SIMPLE (sin PrecioItem): usa cotizacion.precio_por_persona y
-     cotizacion.precio_total directo. Es el caso más común.
-
-  2) MÚLTIPLES LÍNEAS (con PrecioItem): cada línea es un precio propio
-     (Adultos/Niño, Tarifa sencilla/doble, un precio por cada hotel a
-     elegir). El total, si existe, sale de precio_total: si no hay un
-     total único, se muestra precio_nota_total en su lugar.
+  - 0 o 1 hotel: muestra cotizacion.inversion_lineas, texto libre
+    escrito por el asesor, una línea debajo de otra.
+  - 2+ hoteles: muestra un mensaje fijo -- el precio real ya está en
+    la página de cada hotel (h.precios).
 
   CONTEXTO ESPERADO:
-    cotizacion.destino             -> str
-    cotizacion.precios.all         -> queryset de PrecioItem (puede estar vacío)
-    cotizacion.precio_total        -> Decimal o None
-    cotizacion.precio_por_persona  -> Decimal o Nonelo
-    cotizacion.precio_nota_total   -> str (mensaje alternativo al total)
+    cotizacion.destino          -> str
+    cotizacion.hoteles.all      -> queryset -- se usa solo para contar
+    cotizacion.inversion_lineas -> list[str]
 
   ASSETS ESTÁTICOS:
-    logoApilado.png  -> logo crema (fondo oscuro)
+    logoLargoBlanco.png  -> logo crema (fondo oscuro)
+    machaBlanca.png      -> decorativo
+    maleta.png           -> decorativo
 -->
 
+{% with total_hoteles=cotizacion.hoteles.all|length %}
 <section class="lusso-page lusso-page--inversion">
 
   <div class="i-eyebrow">{{ cotizacion.destino|upper }}</div>
@@ -35,40 +33,13 @@
   <h1 class="i-headline">Inversión</h1>
 
   <div class="i-contenido">
-
-    {% if cotizacion.precios.all %}
-      <!-- Esquema de múltiples líneas -->
-      {% for p in cotizacion.precios.all %}
-        <div class="i-linea">
-          <span class="i-linea__precio">$ {{ p.precio|floatformat:0|intcomma }}</span>
-          <span class="i-linea__etiqueta">{{ p.etiqueta }}</span>
-        </div>
-        {% if p.nota %}
-          <div class="i-linea__nota">{{ p.nota }}</div>
-        {% endif %}
-      {% endfor %}
-
-      {% if cotizacion.precio_total %}
-        <div class="i-total">Total: $ {{ cotizacion.precio_total|floatformat:0|intcomma }}</div>
-      {% elif cotizacion.precio_nota_total %}
-        <div class="i-nota-total">{{ cotizacion.precio_nota_total }}</div>
-      {% endif %}
-
+    {% if total_hoteles > 1 %}
+      <div class="i-nota-total">Según el hotel de preferencia, consulte con su asesor</div>
     {% else %}
-      <!-- Esquema simple: por persona + total -->
-      <div class="i-simple">
-  {% if cotizacion.precio_por_persona %}
-    <div class="i-label-persona">Costo persona</div>
-    <div class="i-valor-persona">$ {{ cotizacion.precio_por_persona|floatformat:0|intcomma }}</div>
-
-  {% endif %}
-  {% if cotizacion.precio_total %}
-    <div class="i-label-total">Costo total</div>
-    <div class="i-valor-total">$ {{ cotizacion.precio_total|floatformat:0|intcomma }}</div>
-  {% endif %}
-</div>
+      {% for linea in cotizacion.inversion_lineas %}
+        <div class="i-linea-libre">{{ linea }}</div>
+      {% endfor %}
     {% endif %}
-
   </div>
 
   <div class="i-footer">Contarás con acompañamiento del equipo de Lusso Travel cada que lo requieras durante tu viaje.</div>
@@ -77,6 +48,7 @@
   <img class="i-maleta" src="{% static 'cotizaciones/assets/maleta.png' %}" alt="">
 
 </section>
+{% endwith %}
 
 <style>
   :root {
@@ -135,90 +107,23 @@
     width: 1400px;
   }
 
-  /* --- Esquema múltiples líneas --- */
-  .i-linea {
-    display: flex;
-    align-items: baseline;
-    gap: 16px;
-    margin-bottom: 4px;
-  }
-  .i-linea__precio {
-    font-weight: 800;
-    font-size: 36px;
-    color: var(--crema);
-  }
-  .i-linea__etiqueta {
-    font-weight: 400;
-    font-size: 28px;
-    color: var(--crema);
-  }
-  .i-linea__nota {
-    font-weight: 600;
-    font-size: 18px;
-    letter-spacing: 0.5px;
-    color: rgba(255,246,244,0.6);
-    text-transform: uppercase;
-    margin-bottom: 24px;
-  }
-
-  .i-total {
-    font-weight: 800;
+  /* --- Líneas de texto libre (inversion_lineas) --- */
+  .i-linea-libre {
+    font-weight: 700;
     font-size: 40px;
     color: var(--crema);
-    margin-top: 24px;
+    margin-bottom: 12px;
   }
+
+  /* --- Mensaje fijo cuando hay 2+ hoteles --- */
   .i-nota-total {
     font-weight: 600;
     font-size: 22px;
     line-height: 1.4;
     color: rgba(255,246,244,0.85);
-    margin-top: 24px;
     max-width: 700px;
   }
 
-  .i-simple {
-  position: relative;
-}
-
-.i-label-persona {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 620px;
-  font-weight: 700;
-  font-size: 50px;
-  color: var(--crema);
-}
-
-.i-valor-persona {
-  position: absolute;
-  top: 70px;
-  left: 0;
-  width: 620px;
-  font-weight: 400;
-  font-size: 47px;
-  color: var(--crema);
-}
-
-.i-label-total {
-  position: absolute;
-  top: 180px;
-  left: 0;
-  width: 620px;
-  font-weight: 700;
-  font-size: 50px;
-  color: var(--crema);
-}
-
-.i-valor-total {
-  position: absolute;
-  top: 250px;
-  left: 0;
-  width: 620px;
-  font-weight: 400;
-  font-size: 47px;
-  color: var(--crema);
-}
   .i-footer {
     position: absolute;
     bottom: 100px;

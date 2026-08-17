@@ -59,3 +59,46 @@ def asegurar_imagenes_despertar_bienvenidos(cotizacion):
 
     if cambios:
         cotizacion.save(update_fields=["descripcion_destino_imagen", "bienvenida_descripcion_imagen"])
+
+def asegurar_imagenes_portada_buenviaje(cotizacion):
+    """
+    Genera las imágenes de fecha/nombre/destino usadas en portada y
+    buenviaje. Fecha y nombre se comparten entre las 2 páginas (mismo
+    estilo); destino tiene una versión por página (itálica en portada,
+    normal en buenviaje).
+    """
+    cambios = []
+
+    if cotizacion.fecha_inicio and cotizacion.fecha_fin:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_path = os.path.join(tmp, "fecha_viaje_imagen.png")
+            generar_png_transparente(cotizacion.id, ".captura-fecha", output_path)
+            url_publica = subir_a_supabase(output_path, f"cotizaciones/{cotizacion.id}/fecha_viaje_imagen.png")
+            cotizacion.fecha_viaje_imagen = url_publica
+            cambios.append("fecha_viaje_imagen")
+
+    if cotizacion.lead_id and cotizacion.lead.nombre:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_path = os.path.join(tmp, "lead_nombre_imagen.png")
+            generar_png_transparente(cotizacion.id, ".captura-nombre", output_path)
+            url_publica = subir_a_supabase(output_path, f"cotizaciones/{cotizacion.id}/lead_nombre_imagen.png")
+            cotizacion.lead_nombre_imagen = url_publica
+            cambios.append("lead_nombre_imagen")
+
+    if cotizacion.destino:
+        with tempfile.TemporaryDirectory() as tmp:
+            output_path = os.path.join(tmp, "destino_portada_imagen.png")
+            generar_png_transparente(cotizacion.id, ".captura-destino-portada", output_path)
+            url_publica = subir_a_supabase(output_path, f"cotizaciones/{cotizacion.id}/destino_portada_imagen.png")
+            cotizacion.destino_portada_imagen = url_publica
+            cambios.append("destino_portada_imagen")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output_path = os.path.join(tmp, "destino_buenviaje_imagen.png")
+            generar_png_transparente(cotizacion.id, ".captura-destino-buenviaje", output_path)
+            url_publica = subir_a_supabase(output_path, f"cotizaciones/{cotizacion.id}/destino_buenviaje_imagen.png")
+            cotizacion.destino_buenviaje_imagen = url_publica
+            cambios.append("destino_buenviaje_imagen")
+
+    if cambios:
+        cotizacion.save(update_fields=cambios)

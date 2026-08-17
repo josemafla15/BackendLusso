@@ -23,7 +23,7 @@ class VueloInline(admin.TabularInline):
 @admin.register(Cotizacion)
 class CotizacionAdmin(admin.ModelAdmin):
     list_display = (
-        "destino", "lead", "asesor", "precio_total", "precio_por_persona",
+        "destino", "lead", "asesor", "cantidad_lineas_inversion",
         "estado", "version", "created_at",
     )
     list_filter = ("estado", "asesor")
@@ -33,6 +33,10 @@ class CotizacionAdmin(admin.ModelAdmin):
 
     class Media:
         js = ("cotizaciones/admin/prefill_destino.js",)
+
+    @admin.display(description="Líneas de inversión")
+    def cantidad_lineas_inversion(self, obj):
+        return len(obj.inversion_lineas)
 
 
 class HotelImagenInline(admin.TabularInline):

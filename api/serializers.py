@@ -92,6 +92,7 @@ class HotelPartnerSerializer(serializers.ModelSerializer):
     def get_imagenes(self, obj):
         return list(obj.imagenes.order_by("orden").values_list("url", flat=True))
 
+
 class CotizacionHotelSerializer(serializers.ModelSerializer):
     nombre_display = serializers.CharField(read_only=True)
 
@@ -112,23 +113,31 @@ class VueloSerializer(serializers.ModelSerializer):
         model = Vuelo
         fields = ["id", "tipo", "tipo_display", "imagen", "orden"]
 
+
 class CotizacionSerializer(serializers.ModelSerializer):
     asesor = UserSerializer(read_only=True)
     lead_nombre = serializers.CharField(source="lead.nombre", read_only=True)
     hoteles = CotizacionHotelSerializer(many=True, required=False)
     vuelos = VueloSerializer(many=True, required=False)
 
+    CAMPOS_CATALOGO = [
+        "descripcion_destino", "imagen_destino", "imagen_destino_secundaria",
+        "bienvenida_descripcion", "imagen_bienvenida",
+        "imagen_viaje_sonado", "viaje_sonado_intro_texto", "viaje_sonado_texto1",
+        "imagen_arte_vivir_1", "imagen_arte_vivir_2",
+    ]
+
     class Meta:
         model = Cotizacion
         fields = [
-            "id", "lead", "lead_nombre", "asesor", "destino",
+            "id", "lead", "lead_nombre", "asesor", "destino", "nombre_cliente",
             "fecha_inicio", "fecha_fin", "num_personas",
             "descripcion_destino", "imagen_destino", "imagen_destino_secundaria",
             "bienvenida_descripcion", "imagen_bienvenida",
             "imagen_viaje_sonado", "viaje_sonado_intro_texto", "viaje_sonado_intro_imagen",
             "viaje_sonado_texto1", "viaje_sonado_texto1_imagen",
             "imagen_arte_vivir_1", "imagen_arte_vivir_2",
-            "precio_total", "precio_por_persona", "precio_nota_total",
+            "precio_total", "precio_por_persona", "precio_nota_total", "inversion_lineas",
             "incluye", "no_incluye", "vigencia", "version", "estado",
             "pdf_url", "notas", "hoteles", "vuelos",
             "created_at", "updated_at",
@@ -142,6 +151,25 @@ class CotizacionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         hoteles_data = validated_data.pop("hoteles", [])
         vuelos_data = validated_data.pop("vuelos", [])
+
+        # Fallback: si el front no manda nombre_cliente, usar el del lead
+        if not validated_data.get("nombre_cliente"):
+            lead = validated_data.get("lead")
+            if lead:
+                validated_data["nombre_cliente"] = lead.nombre
+
+        # Prefill automático desde el catálogo -- mismo comportamiento que
+        # ya tenía el admin (prefill_destino.js), pero centralizado acá
+        # para que también aplique al crear desde la API/front.
+        destino_nombre = (validated_data.get("destino") or "").strip()
+        if destino_nombre:
+            catalogo = DestinoContenido.objects.filter(nombre__iexact=destino_nombre).first()
+            if catalogo:
+                for campo in self.CAMPOS_CATALOGO:
+                    if not validated_data.get(campo):
+                        valor_catalogo = getattr(catalogo, campo)
+                        if valor_catalogo:
+                            validated_data[campo] = valor_catalogo
 
         cotizacion = Cotizacion.objects.create(**validated_data)
 

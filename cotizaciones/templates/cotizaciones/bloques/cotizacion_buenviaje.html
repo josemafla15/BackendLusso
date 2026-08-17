@@ -5,19 +5,26 @@
 <!--
   BLOQUE: Página final "Buen viaje" — Lusso Travel
 
-  Cierra el PDF reutilizando destino/fechas (mismos campos que la portada).
-  Los datos de contacto son constantes de marca, no cambian.
+  Fechas/nombre/destino y datos de contacto -- TODOS rasterizados como
+  PNG transparente, igual que el resto de textos largos del sistema,
+  para evitar que Canva rompa el espaciado al reimportar.
+
+  Fecha/nombre/destino usan flujo natural dentro de .bv-dates (mismo
+  esquema que portada), no position:absolute individual.
 
   CONTEXTO ESPERADO:
-    cotizacion.destino       -> str
-    cotizacion.fecha_inicio  -> date
-    cotizacion.fecha_fin     -> date
+    cotizacion.fecha_viaje_imagen           -> URL PNG (rango de fechas, compartida con portada)
+    cotizacion.lead_nombre_imagen           -> URL PNG (nombre del cliente, compartida con portada)
+    cotizacion.destino_buenviaje_imagen     -> URL PNG (destino, itálica, igual que portada)
 
   ASSETS ESTÁTICOS — ruta real: cotizaciones/static/cotizaciones/assets/
-    logoApilado.png          -> logo crema (fondo oscuro)
-    swirl_transparente.png   -> decorativo, esquina superior derecha, pegado al borde
-    mancha.png                -> decorativo, esquina inferior derecha (capa de atrás)
-    ventana.png                -> decorativo, esquina inferior derecha (capa de adelante, sobre mancha)
+    logoApilado.png              -> logo crema (fondo oscuro)
+    swirl_transparente.png       -> decorativo, esquina superior derecha, pegado al borde
+    manchaVolteada.png           -> decorativo, esquina inferior derecha (capa de atrás)
+    ventana.png                  -> decorativo, esquina inferior derecha (capa de adelante, sobre mancha)
+    bv_contacto_telefono.png     -> "+57 320 550 9589" (imagen fija, no cambia)
+    bv_contacto_instagram.png    -> "@lussotravelpasto" (imagen fija, no cambia)
+    bv_contacto_email.png        -> "contacto@lussotravel.co" (imagen fija, no cambia)
 -->
 
 <section class="lusso-page lusso-page--buenviaje">
@@ -28,17 +35,18 @@
 
   <img class="bv-logo" src="{% static 'cotizaciones/assets/logoApilado.png' %}" alt="Lusso Travel">
 
-  <div class="bv-dates__range">
-  {{ cotizacion.fecha_inicio|date:"d" }}&ndash;{{ cotizacion.fecha_fin|date:"d" }} de {{ cotizacion.fecha_fin|date:"F, Y" }}
-</div>
-<div class="bv-dates__lead">{{ cotizacion.lead.nombre }}</div>
-<div class="bv-dates__destino">{{ cotizacion.destino|title }}</div>
+  <div class="bv-dates">
+    <img class="bv-dates__range" src="{{ cotizacion.fecha_viaje_imagen }}" alt="">
+    <img class="bv-dates__lead" src="{{ cotizacion.lead_nombre_imagen }}" alt="{{ cotizacion.lead.nombre }}">
+    <img class="bv-dates__destino" src="{{ cotizacion.destino_buenviaje_imagen }}" alt="{{ cotizacion.destino }}">
+  </div>
+
   <h1 class="bv-headline">Buen<br>viaje</h1>
 
   <div class="bv-contacto">
-    <span>+57 320 550 9589</span>
-    <span>@lussotravelpasto</span>
-    <span>contacto@lussotravel.co</span>
+    <img src="{% static 'cotizaciones/assets/bv_contacto_telefono.png' %}" alt="+57 320 550 9589">
+    <img src="{% static 'cotizaciones/assets/bv_contacto_instagram.png' %}" alt="@lussotravelpasto">
+    <img src="{% static 'cotizaciones/assets/bv_contacto_email.png' %}" alt="contacto@lussotravel.co">
   </div>
 
 </section>
@@ -75,36 +83,27 @@
     top: 120px;
     right: 78px;
     text-align: right;
-    color: var(--crema);
-    line-height: 1.05;
   }
   .bv-dates__range {
-  position: absolute;
-  top: 120px;
-  right: 78px;
-  font-weight: 400;
-  font-size: 32px;
-  color: var(--crema);
-}
-
-.bv-dates__lead {
-  position: absolute;
-  top: 168px;
-  right: 78px;
-  font-weight: 600;
-  font-size: 24px;
-  color: var(--crema);
-}
-
-.bv-dates__destino {
-  position: absolute;
-  top: 222px;
-  right: 78px;
-  font-style: normal;
-  font-weight: 400;
-  font-size: 36px;
-  color: var(--crema);
-}
+    display: block;
+    margin-left: auto;
+    height: 32px;
+    width: auto;
+  }
+  .bv-dates__lead {
+    display: block;
+    margin-left: auto;
+    margin-top: 4px;
+    height: 32px;
+    width: auto;
+  }
+  .bv-dates__destino {
+    display: block;
+    margin-left: auto;
+    margin-top: -4px;
+    height: 36px;
+    width: auto;
+  }
 
   .bv-headline {
     position: absolute;
@@ -124,12 +123,12 @@
     bottom: 90px;
     left: 68px;
     display: flex;
+    align-items: center;
     gap: 300px;
   }
-  .bv-contacto span {
-    font-weight: 400;
-    font-size: 20px;
-    color: var(--crema);
+  .bv-contacto img {
+    height: 24px;
+    width: auto;
   }
 
   /* Swirl pegado al borde superior derecho */
@@ -143,16 +142,15 @@
 
   /* Mancha detrás de la ventana, esquina inferior derecha */
   .bv-mancha {
-  position: absolute;
-  bottom: -530px;
-  right: -350px;
-  width: 1100px;
-  
-}
-.bv-ventana {
-  position: absolute;
-  bottom: 150px;
-  right: -100px;
-  width: 800px;
-}
+    position: absolute;
+    bottom: -530px;
+    right: -350px;
+    width: 1100px;
+  }
+  .bv-ventana {
+    position: absolute;
+    bottom: 150px;
+    right: -100px;
+    width: 800px;
+  }
 </style>
