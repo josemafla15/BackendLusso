@@ -60,12 +60,17 @@ def asegurar_imagenes_despertar_bienvenidos(cotizacion):
     if cambios:
         cotizacion.save(update_fields=["descripcion_destino_imagen", "bienvenida_descripcion_imagen"])
 
+
 def asegurar_imagenes_portada_buenviaje(cotizacion):
     """
     Genera las imágenes de fecha/nombre/destino usadas en portada y
     buenviaje. Fecha y nombre se comparten entre las 2 páginas (mismo
     estilo); destino tiene una versión por página (itálica en portada,
     normal en buenviaje).
+
+    El nombre usa nombre_cliente como fuente principal (con fallback a
+    lead.nombre si nombre_cliente está vacío pero hay un lead) -- así
+    funciona tanto para cotizaciones con lead como sin lead.
     """
     cambios = []
 
@@ -77,7 +82,8 @@ def asegurar_imagenes_portada_buenviaje(cotizacion):
             cotizacion.fecha_viaje_imagen = url_publica
             cambios.append("fecha_viaje_imagen")
 
-    if cotizacion.lead_id and cotizacion.lead.nombre:
+    nombre_para_imagen = cotizacion.nombre_cliente or (cotizacion.lead.nombre if cotizacion.lead else "")
+    if nombre_para_imagen:
         with tempfile.TemporaryDirectory() as tmp:
             output_path = os.path.join(tmp, "lead_nombre_imagen.png")
             generar_png_transparente(cotizacion.id, ".captura-nombre", output_path)

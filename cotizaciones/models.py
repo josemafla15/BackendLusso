@@ -15,13 +15,18 @@ class Cotizacion(models.Model):
         VENCIDA = "vencida", "Vencida"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    lead = models.ForeignKey(Lead, on_delete=models.PROTECT, related_name="cotizaciones")
+    lead = models.ForeignKey(
+    Lead, on_delete=models.PROTECT, related_name="cotizaciones",
+    null=True, blank=True,
+    help_text="Opcional -- una cotización puede crearse sin vincularse "
+               "a ningún lead existente, usando solo nombre_cliente.",
+)
     asesor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="cotizaciones",
     )
-    destino = models.TextField()
+    destino = models.TextField(blank=True)
     nombre_cliente = models.CharField(
         max_length=200, blank=True,
         help_text="Nombre que aparece en portada y buen viaje del PDF. Se "
@@ -149,7 +154,9 @@ class Cotizacion(models.Model):
         verbose_name_plural = "Cotizaciones"
 
     def __str__(self):
-        return f"{self.destino} — {self.lead.nombre} (v{self.version})"
+        nombre = self.nombre_cliente or (self.lead.nombre if self.lead else "Sin cliente")
+        return f"{self.destino} — {nombre} (v{self.version})"
+    
 class DestinoContenido(models.Model):
     """
     Catálogo de contenido reutilizable por destino. Se carga una vez
@@ -210,6 +217,15 @@ class HotelPartner(models.Model):
     direccion = models.TextField(blank=True)
     descripcion = models.TextField(blank=True)
     activo = models.BooleanField(default=True)
+
+    # 3 slots fijos, mismo patrón que las imágenes de DestinoContenido --
+    # coinciden exactamente con las 3 fotos que usa el template del PDF
+    # (h-foto--top grande + 2 h-foto--half chicas). Fijo a propósito,
+    # no reordenable, para no desorganizar el diseño.
+    imagen_1 = models.URLField(blank=True, help_text="Foto grande (arriba, ancha).")
+    imagen_2 = models.URLField(blank=True, help_text="Foto chica (abajo, izquierda).")
+    imagen_3 = models.URLField(blank=True, help_text="Foto chica (abajo, derecha).")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -256,7 +272,7 @@ class CotizacionHotel(models.Model):
     # Fallback para un hotel puntual que no vale la pena meter al catálogo
     nombre_libre = models.CharField(max_length=200, blank=True)
 
-    noches = models.PositiveIntegerField()
+    noches = models.PositiveIntegerField(null=True, blank=True)
     tipo_habitacion = models.CharField(max_length=150, blank=True)
     plan_alimentacion = models.CharField(max_length=150, blank=True)
 

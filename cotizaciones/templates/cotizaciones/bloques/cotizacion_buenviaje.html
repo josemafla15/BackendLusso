@@ -37,7 +37,7 @@
 
   <div class="bv-dates">
     <img class="bv-dates__range" src="{{ cotizacion.fecha_viaje_imagen }}" alt="">
-    <img class="bv-dates__lead" src="{{ cotizacion.lead_nombre_imagen }}" alt="{{ cotizacion.lead.nombre }}">
+    <img class="bv-dates__lead" src="{{ cotizacion.lead_nombre_imagen }}" alt="{% firstof cotizacion.nombre_cliente cotizacion.lead.nombre %}">
     <img class="bv-dates__destino" src="{{ cotizacion.destino_buenviaje_imagen }}" alt="{{ cotizacion.destino }}">
   </div>
 

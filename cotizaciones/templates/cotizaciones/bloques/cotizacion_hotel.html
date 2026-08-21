@@ -12,20 +12,22 @@
 
   PRECIO POR HOTEL (h.precios): solo se muestra si hay MÁS DE 1 hotel
   en la cotización. Con 0 o 1 hotel, el precio va en la página
-  "Inversión" (cotizacion_inversion.html), no acá -- aunque el campo
-  h.precios tenga datos cargados, se ignora en ese caso, para no
-  duplicar el precio en 2 lugares distintos.
+  "Inversión" (cotizacion_inversion.html), no acá.
 
-  Dirección, descripción, datos importantes y precios viven dentro de
-  .h-content, que usa flujo normal (no position:absolute individual) --
-  así ninguno se pisa con el otro sin importar cuánto texto tenga cada
-  hotel. Solo .h-headline queda fijo arriba con su propio position.
+  Título, dirección, descripción, datos importantes y precios viven
+  TODOS dentro de .h-content, que usa flujo normal (no
+  position:absolute individual) -- así ninguno se pisa con el otro sin
+  importar cuántas líneas ocupe el nombre del hotel o cuánto texto
+  tenga cada sección.
+
+  Datos importantes (título + contenido) solo se muestran si hay al
+  menos un dato cargado -- si el hotel no tiene tipo_habitacion,
+  plan_alimentacion ni datos_importantes, la sección entera desaparece.
 
   CONTEXTO ESPERADO:
     cotizacion.destino          -> str
     cotizacion.hoteles.all      -> queryset de CotizacionHotel, cada uno con:
         .nombre_display          -> str (del catálogo o nombre_libre)
-        .noches                  -> int
         .tipo_habitacion         -> str
         .plan_alimentacion       -> str
         .datos_importantes       -> list[str], viñetas cargadas por cotización
@@ -33,7 +35,9 @@
                                      (solo se muestra si hay más de 1 hotel)
         .hotel.direccion         -> str (si viene del catálogo)
         .hotel.descripcion       -> str
-        .hotel.imagenes.all      -> queryset de HotelImagen (usamos las primeras 3)
+        .hotel.imagen_1          -> URL, foto grande (arriba, ancha)
+        .hotel.imagen_2          -> URL, foto chica (abajo, izquierda)
+        .hotel.imagen_3          -> URL, foto chica (abajo, derecha)
 
   ASSETS ESTÁTICOS:
     logoLargoNegro.png       -> logo oscuro (fondo claro)
@@ -49,20 +53,18 @@
   <div class="h-eyebrow">{{ cotizacion.destino|upper }}</div>
   <img class="h-logo" src="{% static 'cotizaciones/assets/logoLargoNegro.png' %}" alt="Lusso Travel">
 
-  <h1 class="h-headline">{{ h.nombre_display }}</h1>
-
   <div class="h-content">
+    <h1 class="h-headline">{{ h.nombre_display }}</h1>
+
     {% if h.hotel.direccion %}
       <div class="h-direccion">{{ h.hotel.direccion }}</div>
     {% endif %}
 
     <p class="h-descripcion">{{ h.hotel.descripcion }}</p>
 
+    {% if h.tipo_habitacion or h.plan_alimentacion or h.datos_importantes %}
     <div class="h-datos">
       <h2 class="h-datos__titulo">Datos importantes de estadía</h2>
-      <div class="h-dato">
-        <span class="h-dato__label">Noches:</span> {{ h.noches }}
-      </div>
       {% if h.tipo_habitacion %}
         <div class="h-dato">
           <span class="h-dato__label">Habitación:</span> {{ h.tipo_habitacion }}
@@ -77,6 +79,7 @@
         <div class="h-dato">{{ dato }}</div>
       {% endfor %}
     </div>
+    {% endif %}
 
     {% if h.precios and total_hoteles > 1 %}
     <div class="h-precios">
@@ -89,19 +92,17 @@
   </div>
 
   <div class="h-fotos">
-    {% with imgs=h.hotel.imagenes.all %}
-      {% if imgs.0 %}
-        <img class="h-foto h-foto--top" src="{{ imgs.0.url }}" alt="{{ h.nombre_display }}">
+    {% if h.hotel.imagen_1 %}
+      <img class="h-foto h-foto--top" src="{{ h.hotel.imagen_1 }}" alt="{{ h.nombre_display }}">
+    {% endif %}
+    <div class="h-fotos__row">
+      {% if h.hotel.imagen_2 %}
+        <img class="h-foto h-foto--half" src="{{ h.hotel.imagen_2 }}" alt="{{ h.nombre_display }}">
       {% endif %}
-      <div class="h-fotos__row">
-        {% if imgs.1 %}
-          <img class="h-foto h-foto--half" src="{{ imgs.1.url }}" alt="{{ h.nombre_display }}">
-        {% endif %}
-        {% if imgs.2 %}
-          <img class="h-foto h-foto--half" src="{{ imgs.2.url }}" alt="{{ h.nombre_display }}">
-        {% endif %}
-      </div>
-    {% endwith %}
+      {% if h.hotel.imagen_3 %}
+        <img class="h-foto h-foto--half" src="{{ h.hotel.imagen_3 }}" alt="{{ h.nombre_display }}">
+      {% endif %}
+    </div>
   </div>
 
 </section>
@@ -153,10 +154,17 @@
     height: 260px;
   }
 
-  .h-headline {
+  .h-content {
     position: absolute;
     top: 200px;
     left: 68px;
+    width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .h-headline {
     width: 900px;
     font-weight: 900;
     font-size: 60px;
@@ -167,16 +175,6 @@
     margin: 0;
   }
 
-  .h-content {
-    position: absolute;
-    top: 340px;
-    left: 68px;
-    width: 800px;
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-  }
-
   .h-direccion {
     font-weight: 700;
     font-size: 28px;
@@ -185,7 +183,7 @@
 
   .h-descripcion {
     font-weight: 400;
-    font-size: 22px;
+    font-size: 25px;
     line-height: 1.3;
     color: var(--negro-editorial);
     margin: 0;

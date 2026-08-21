@@ -34,7 +34,7 @@
 </div>
 
 <div class="captura-nombre" style="display:inline-block; white-space:nowrap; font-weight:600; font-size:32px; color:#fff6f4; font-family:'Poppins',sans-serif;">
-    {{ cotizacion.nombre_cliente|default:cotizacion.lead.nombre }}
+        {% firstof cotizacion.nombre_cliente cotizacion.lead.nombre %}
 </div>
 
 <div class="captura-destino-portada" style="display:inline-block; white-space:nowrap; font-style:italic; font-weight:400; font-size:37px; color:#fff6f4; font-family:'Poppins',sans-serif;">

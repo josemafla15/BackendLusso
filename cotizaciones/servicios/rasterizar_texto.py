@@ -1,5 +1,5 @@
-# cotizaciones/servicios/rasterizar_texto.py
 from playwright.sync_api import sync_playwright
+
 
 def generar_png_transparente(cotizacion_id, selector, output_path, bloque="viajesonado_captura", scale=2):
     """
@@ -15,7 +15,7 @@ def generar_png_transparente(cotizacion_id, selector, output_path, bloque="viaje
             viewport={"width": 1920, "height": 1080},
             device_scale_factor=scale,
         )
-        page.goto(url, wait_until="networkidle")
+        page.goto(url, wait_until="networkidle", timeout=60000)
         page.add_style_tag(content="""
             html, body, .lusso-page {
                 background: transparent !important;

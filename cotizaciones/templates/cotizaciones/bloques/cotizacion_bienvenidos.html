@@ -5,6 +5,12 @@
 <!--
   BLOQUE: Página 4 — "Bienvenidos a [destino]" — Lusso Travel
 
+  Título y párrafo viven dentro de .b-content, que usa flujo normal
+  (no position:absolute individual) -- así el párrafo nunca se pisa
+  con el título, sin importar si el nombre del destino es corto (2
+  líneas) o largo (3 líneas). Mismo patrón que ya usamos en la página
+  de hotel para el mismo tipo de problema.
+
   CONTEXTO ESPERADO:
     cotizacion.destino               -> str
     cotizacion.bienvenida_descripcion -> str (párrafo descriptivo)
@@ -22,9 +28,10 @@
   <div class="b-eyebrow">{{ cotizacion.destino|upper }}</div>
   <img class="b-logo" src="{% static 'cotizaciones/assets/logoLargoBlanco.png' %}" alt="Lusso Travel">
 
-  <h1 class="b-headline">Bienvenidos a<br>{{ cotizacion.destino }}</h1>
-
-  <img class="b-body" src="{{ cotizacion.bienvenida_descripcion_imagen }}" alt="{{ cotizacion.bienvenida_descripcion }}">
+  <div class="b-content">
+    <h1 class="b-headline">Bienvenidos a<br>{{ cotizacion.destino }}</h1>
+    <img class="b-body" src="{{ cotizacion.bienvenida_descripcion_imagen }}" alt="{{ cotizacion.bienvenida_descripcion }}">
+  </div>
 
   <img class="b-photo" src="{{ cotizacion.imagen_bienvenida }}" alt="{{ cotizacion.destino }}">
 
@@ -76,11 +83,18 @@
     height: 260px;
   }
 
-  .b-headline {
+  .b-content {
     position: absolute;
     top: 220px;
     left: 68px;
     width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .b-headline {
+    width: 1100px;
     font-weight: 700;
     font-size: 110px;
     line-height: 0.9;
@@ -92,26 +106,19 @@
   }
 
   .b-body {
-    position: absolute;
-    top: 500px;
-    left: 68px;
     width: 700px;
-    font-weight: 400;
-    font-size: 22px;
-    line-height: 1.4;
-    letter-spacing: -0.2px;
-    color: var(--crema);
-    margin: 0;
+    display: block;
   }
 
-  /* Espacio reservado para la foto -- ajustar tamaño/posición cuando
-     tengamos la URL real y podamos ver cómo calza */
+  /* Foto -- movida un poco más a la derecha y abajo, para dejar más
+     margen de seguridad frente al título, sin importar cuántas líneas
+     ocupe el nombre del destino. */
   .b-photo {
     position: absolute;
-    top: 220px;
-    right: 250px;
-    width: 600px;
-    height: 800px;
+    top: 260px;
+    right: 180px;
+    width: 580px;
+    height: 760px;
     object-fit: cover;
     border-radius: 4px;
   }

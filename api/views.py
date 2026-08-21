@@ -70,26 +70,27 @@ class LeadViewSet(viewsets.ModelViewSet):
         return LeadDetailSerializer
 
 
-class DestinoContenidoViewSet(viewsets.ReadOnlyModelViewSet):
-    """Solo lectura -- el catálogo se administra desde Django admin."""
+class DestinoContenidoViewSet(viewsets.ModelViewSet):
+    """
+    Catálogo de destinos -- cualquier asesor autenticado puede crear/
+    editar (hereda IsAuthenticated del default de DRF).
+    """
     queryset = DestinoContenido.objects.all().order_by("nombre")
     serializer_class = DestinoContenidoSerializer
     search_fields = ["nombre"]
-    http_method_names = ["get", "head", "options"]
+    http_method_names = ["get", "post", "patch", "head", "options"]
 
 
-class HotelPartnerViewSet(viewsets.ReadOnlyModelViewSet):
+class HotelPartnerViewSet(viewsets.ModelViewSet):
     """
-    Solo lectura desde este front -- el catálogo de hoteles se administra
-    desde Django admin. Filtrable por destino:
-    GET /api/hoteles/?destino=<id>
+    Catálogo de hoteles -- cualquier asesor autenticado puede crear/
+    editar. Filtrable por destino: GET /api/hoteles/?destino=<id>
     """
     queryset = HotelPartner.objects.filter(activo=True).select_related("destino")
     serializer_class = HotelPartnerSerializer
     filterset_fields = ["destino", "ciudad"]
     search_fields = ["nombre", "ciudad"]
-    http_method_names = ["get", "head", "options"]
-
+    http_method_names = ["get", "post", "patch", "head", "options"]
 
 class CotizacionViewSet(viewsets.ModelViewSet):
     queryset = Cotizacion.objects.all().select_related("lead", "asesor").prefetch_related(

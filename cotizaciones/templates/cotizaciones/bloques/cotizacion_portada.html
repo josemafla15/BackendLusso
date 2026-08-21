@@ -27,7 +27,7 @@
 
   <div class="p-dates">
     <img class="p-dates__range" src="{{ cotizacion.fecha_viaje_imagen }}" alt="">
-    <img class="p-dates__lead" src="{{ cotizacion.lead_nombre_imagen }}" alt="{{ cotizacion.lead.nombre }}">
+    <img class="p-dates__lead" src="{{ cotizacion.lead_nombre_imagen }}" alt="{% firstof cotizacion.nombre_cliente cotizacion.lead.nombre %}">
     <img class="p-dates__destino" src="{{ cotizacion.destino_portada_imagen }}" alt="{{ cotizacion.destino }}">
   </div>
 

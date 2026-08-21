@@ -80,13 +80,11 @@ class DestinoContenidoSerializer(serializers.ModelSerializer):
 
 
 class HotelPartnerSerializer(serializers.ModelSerializer):
-    imagenes = serializers.SerializerMethodField()
-
     class Meta:
         model = HotelPartner
         fields = [
             "id", "destino", "nombre", "ciudad", "direccion", "descripcion",
-            "activo", "imagenes",
+            "activo", "imagen_1", "imagen_2", "imagen_3",
         ]
 
     def get_imagenes(self, obj):
@@ -116,7 +114,7 @@ class VueloSerializer(serializers.ModelSerializer):
 
 class CotizacionSerializer(serializers.ModelSerializer):
     asesor = UserSerializer(read_only=True)
-    lead_nombre = serializers.CharField(source="lead.nombre", read_only=True)
+    lead_nombre = serializers.SerializerMethodField()
     hoteles = CotizacionHotelSerializer(many=True, required=False)
     vuelos = VueloSerializer(many=True, required=False)
 
@@ -147,6 +145,9 @@ class CotizacionSerializer(serializers.ModelSerializer):
             "viaje_sonado_intro_imagen", "viaje_sonado_texto1_imagen",
             "created_at", "updated_at",
         ]
+
+    def get_lead_nombre(self, obj):
+        return obj.lead.nombre if obj.lead else None
 
     def create(self, validated_data):
         hoteles_data = validated_data.pop("hoteles", [])
@@ -200,6 +201,7 @@ class CotizacionSerializer(serializers.ModelSerializer):
                 Vuelo.objects.create(cotizacion=instance, **vuelo_data)
 
         return instance
+
 
 class PagoSerializer(serializers.ModelSerializer):
     lead_nombre = serializers.CharField(source="lead.nombre", read_only=True, default=None)
