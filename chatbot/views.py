@@ -92,23 +92,20 @@ def _procesar_valor(value):
 
         logger.info("Mensaje guardado de %s: %s", telefono, contenido[:50])
 
-        # ¿Responde el bot? — interruptor manual + pausa con vencimiento
-        pausado = lead.bot_pausado_hasta and lead.bot_pausado_hasta > timezone.now()
-        if lead.bot_activo and not pausado:
-            from .whatsapp import marcar_leido_y_escribiendo
-            marcar_leido_y_escribiendo(wa_message_id)
+        # El bot siempre responde -- ya no hay interruptor manual ni
+        # pausa temporal (bot_activo / bot_pausado_hasta eliminados
+        # de la lógica).
+        from .whatsapp import marcar_leido_y_escribiendo
+        marcar_leido_y_escribiendo(wa_message_id)
 
-            # Debounce: registramos este evento como "el más reciente" y
-            # encolamos con una espera de 5s. Si llega otro mensaje antes de
-            # que se cumpla, esta tarea se auto-descartará al ejecutarse.
-            from .tasks import procesar_mensaje_entrante
-            token = registrar_evento(str(lead.id))
-            procesar_mensaje_entrante.apply_async(
-                args=[str(lead.id), token], countdown=5,
-            )
-        else:
-            logger.info("Bot inactivo/pausado para %s — solo se guardó", lead.nombre)
-            # TODO: notificación de actividad-en-pausa al asesor (con anti-ruido)
+        # Debounce: registramos este evento como "el más reciente" y
+        # encolamos con una espera de 5s. Si llega otro mensaje antes de
+        # que se cumpla, esta tarea se auto-descartará al ejecutarse.
+        from .tasks import procesar_mensaje_entrante
+        token = registrar_evento(str(lead.id))
+        procesar_mensaje_entrante.apply_async(
+            args=[str(lead.id), token], countdown=5,
+        )
 
 
 def _obtener_o_crear_lead(telefono, nombre_wa):

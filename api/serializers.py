@@ -30,7 +30,7 @@ class LeadListSerializer(serializers.ModelSerializer):
         model = Lead
         fields = [
             "id", "nombre", "contacto", "telefono", "origen", "estado",
-            "destino_interes", "mensaje", "datos_viaje", "asesor", "bot_activo",
+            "destino_interes", "mensaje", "datos_viaje", "asesor",
             "created_at", "updated_at", "ultimo_mensaje",
         ]
 
@@ -55,12 +55,11 @@ class LeadDetailSerializer(serializers.ModelSerializer):
         fields = [
             "id", "nombre", "contacto", "telefono", "origen", "estado",
             "mensaje", "destino_interes", "datos_viaje",
-            "bot_activo", "bot_pausado_hasta",
+            "bot_pausado_hasta",
             "asesor", "asesor_id", "mensajes",
             "created_at", "updated_at",
         ]
         read_only_fields = ["id", "origen", "created_at", "updated_at"]
-
 
 class DestinoContenidoSerializer(serializers.ModelSerializer):
     """

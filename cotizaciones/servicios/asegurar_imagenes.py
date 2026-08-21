@@ -1,16 +1,17 @@
 import os
 import tempfile
 
-from .rasterizar_texto import generar_png_transparente
+from .rasterizar_texto import capturar_selector, generar_png_transparente
 from ..storage import subir_a_supabase
 
 
-def asegurar_imagenes_viajesonado(cotizacion):
+def asegurar_imagenes_viajesonado(cotizacion, page=None):
     """
-    Llamar ANTES de renderizar cotizacion_completa.html / generar el PDF.
-    Si el texto está presente pero la imagen no (o quedó vieja), la
-    regenera. Si el texto está vacío, no genera nada (deja el campo
-    imagen vacío -- el template simplemente no mostrará esa imagen).
+    Si se pasa `page`, NO guarda en la base (el navegador sigue abierto
+    -- guardar acá dentro rompe con SynchronousOnlyOperation). En ese
+    caso, solo actualiza los campos en memoria; quien llama es
+    responsable de hacer cotizacion.save() después de cerrar Playwright.
+    Si no se pasa `page` (uso standalone), guarda normal como siempre.
     """
     pares = [
         ("viaje_sonado_intro_texto", "viaje_sonado_intro_imagen", ".v-intro"),
@@ -25,20 +26,20 @@ def asegurar_imagenes_viajesonado(cotizacion):
 
         with tempfile.TemporaryDirectory() as tmp:
             output_path = os.path.join(tmp, f"{campo_imagen}.png")
-            generar_png_transparente(cotizacion.id, selector, output_path)
+            if page is not None:
+                capturar_selector(page, selector, output_path)
+            else:
+                generar_png_transparente(cotizacion.id, selector, output_path)
             url_publica = subir_a_supabase(output_path, f"cotizaciones/{cotizacion.id}/{campo_imagen}.png")
             setattr(cotizacion, campo_imagen, url_publica)
             cambios = True
 
-    if cambios:
+    if cambios and page is None:
         cotizacion.save(update_fields=["viaje_sonado_intro_imagen", "viaje_sonado_texto1_imagen"])
 
 
-def asegurar_imagenes_despertar_bienvenidos(cotizacion):
-    """
-    Igual que asegurar_imagenes_viajesonado, pero para los párrafos de
-    'Imagina despertar aquí' y 'Bienvenidos a [destino]'.
-    """
+def asegurar_imagenes_despertar_bienvenidos(cotizacion, page=None):
+    """Mismo criterio que asegurar_imagenes_viajesonado -- ver docstring de arriba."""
     pares = [
         ("descripcion_destino", "descripcion_destino_imagen", ".d-body-captura"),
         ("bienvenida_descripcion", "bienvenida_descripcion_imagen", ".b-body-captura"),
@@ -52,32 +53,29 @@ def asegurar_imagenes_despertar_bienvenidos(cotizacion):
 
         with tempfile.TemporaryDirectory() as tmp:
             output_path = os.path.join(tmp, f"{campo_imagen}.png")
-            generar_png_transparente(cotizacion.id, selector, output_path)
+            if page is not None:
+                capturar_selector(page, selector, output_path)
+            else:
+                generar_png_transparente(cotizacion.id, selector, output_path)
             url_publica = subir_a_supabase(output_path, f"cotizaciones/{cotizacion.id}/{campo_imagen}.png")
             setattr(cotizacion, campo_imagen, url_publica)
             cambios = True
 
-    if cambios:
+    if cambios and page is None:
         cotizacion.save(update_fields=["descripcion_destino_imagen", "bienvenida_descripcion_imagen"])
 
 
-def asegurar_imagenes_portada_buenviaje(cotizacion):
-    """
-    Genera las imágenes de fecha/nombre/destino usadas en portada y
-    buenviaje. Fecha y nombre se comparten entre las 2 páginas (mismo
-    estilo); destino tiene una versión por página (itálica en portada,
-    normal en buenviaje).
-
-    El nombre usa nombre_cliente como fuente principal (con fallback a
-    lead.nombre si nombre_cliente está vacío pero hay un lead) -- así
-    funciona tanto para cotizaciones con lead como sin lead.
-    """
+def asegurar_imagenes_portada_buenviaje(cotizacion, page=None):
+    """Mismo criterio que asegurar_imagenes_viajesonado -- ver docstring de arriba."""
     cambios = []
 
     if cotizacion.fecha_inicio and cotizacion.fecha_fin:
         with tempfile.TemporaryDirectory() as tmp:
             output_path = os.path.join(tmp, "fecha_viaje_imagen.png")
-            generar_png_transparente(cotizacion.id, ".captura-fecha", output_path)
+            if page is not None:
+                capturar_selector(page, ".captura-fecha", output_path)
+            else:
+                generar_png_transparente(cotizacion.id, ".captura-fecha", output_path)
             url_publica = subir_a_supabase(output_path, f"cotizaciones/{cotizacion.id}/fecha_viaje_imagen.png")
             cotizacion.fecha_viaje_imagen = url_publica
             cambios.append("fecha_viaje_imagen")
@@ -86,7 +84,10 @@ def asegurar_imagenes_portada_buenviaje(cotizacion):
     if nombre_para_imagen:
         with tempfile.TemporaryDirectory() as tmp:
             output_path = os.path.join(tmp, "lead_nombre_imagen.png")
-            generar_png_transparente(cotizacion.id, ".captura-nombre", output_path)
+            if page is not None:
+                capturar_selector(page, ".captura-nombre", output_path)
+            else:
+                generar_png_transparente(cotizacion.id, ".captura-nombre", output_path)
             url_publica = subir_a_supabase(output_path, f"cotizaciones/{cotizacion.id}/lead_nombre_imagen.png")
             cotizacion.lead_nombre_imagen = url_publica
             cambios.append("lead_nombre_imagen")
@@ -94,17 +95,23 @@ def asegurar_imagenes_portada_buenviaje(cotizacion):
     if cotizacion.destino:
         with tempfile.TemporaryDirectory() as tmp:
             output_path = os.path.join(tmp, "destino_portada_imagen.png")
-            generar_png_transparente(cotizacion.id, ".captura-destino-portada", output_path)
+            if page is not None:
+                capturar_selector(page, ".captura-destino-portada", output_path)
+            else:
+                generar_png_transparente(cotizacion.id, ".captura-destino-portada", output_path)
             url_publica = subir_a_supabase(output_path, f"cotizaciones/{cotizacion.id}/destino_portada_imagen.png")
             cotizacion.destino_portada_imagen = url_publica
             cambios.append("destino_portada_imagen")
 
         with tempfile.TemporaryDirectory() as tmp:
             output_path = os.path.join(tmp, "destino_buenviaje_imagen.png")
-            generar_png_transparente(cotizacion.id, ".captura-destino-buenviaje", output_path)
+            if page is not None:
+                capturar_selector(page, ".captura-destino-buenviaje", output_path)
+            else:
+                generar_png_transparente(cotizacion.id, ".captura-destino-buenviaje", output_path)
             url_publica = subir_a_supabase(output_path, f"cotizaciones/{cotizacion.id}/destino_buenviaje_imagen.png")
             cotizacion.destino_buenviaje_imagen = url_publica
             cambios.append("destino_buenviaje_imagen")
 
-    if cambios:
+    if cambios and page is None:
         cotizacion.save(update_fields=cambios)
