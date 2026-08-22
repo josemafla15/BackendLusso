@@ -66,6 +66,7 @@ def subir_a_supabase(local_path, remote_path):
                     "Content-Type": content_type,
                     "x-upsert": "true",
                 },
+                timeout=30,
             )
         response.raise_for_status()
     finally:

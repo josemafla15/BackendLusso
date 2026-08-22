@@ -1,2 +1,2 @@
-web: gunicorn config.wsgi --bind 0.0.0.0:$PORT --log-file -
+web: gunicorn config.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --log-file -
 worker: celery -A config worker -l info
