@@ -2,4 +2,4 @@
 set -e
 
 pip install -r requirements.txt
-playwright install --with-deps chromium"# forzar rebuild limpio 2" 
+playwright install --with-deps chromium
