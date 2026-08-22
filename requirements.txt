@@ -11,4 +11,5 @@ djangorestframework-simplejwt>=5.4
 django-cors-headers>=4.6
 django-filter>=24.3
 Pillow>=10.4
-playwright>=1.40whitenoise
+playwright>=1.40
+whitenoise>=6.7
