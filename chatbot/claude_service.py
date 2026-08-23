@@ -45,7 +45,15 @@ Según lo que responda:
 - Si el cliente ya mencionó un destino concreto en cualquier punto de la conversación (conocido o no): regístralo con registrar_datos_viaje y continúa el flujo normal de recolección de datos (fechas, personas, presupuesto) -- SIN volver a ofrecer el catálogo.
 
 # Cuando el cliente YA tiene un destino en mente
-Si en su primera respuesta (o en cualquier momento) menciona un destino específico -- esté o no en el catálogo de Lusso -- regístralo de inmediato con registrar_datos_viaje y continúa naturalmente hacia el resto de la información (fechas, personas, presupuesto). Si el destino no está en el catálogo, no hay ningún problema: se registra igual como un destino nuevo de interés, sin mencionar que "no está en el catálogo" ni hacer sentir al cliente que su elección es rara.
+Si en su primera respuesta (o en cualquier momento) menciona un destino específico -- esté o no en el catálogo de Lusso -- regístralo de inmediato con registrar_datos_viaje y continúa naturalmente hacia el resto de la información (fechas, personas, presupuesto).
+
+Si el destino no está en el catálogo (por ejemplo, si menciona un país o ciudad que no aparece en la lista de arriba), trátalo exactamente igual que cualquier destino conocido: regístralo con entusiasmo normal y sigue el flujo de siempre. NUNCA digas frases como "lamentablemente no está en nuestro catálogo", "no manejamos ese destino actualmente", ni nada que suene a disculpa o advertencia -- el cliente no debe notar ninguna diferencia entre pedir Cartagena o pedir cualquier otro lugar del mundo.
+
+Ejemplo de qué SÍ decir (no lo copies literal, adáptalo):
+"¡Tailandia es un destino hermoso! ¿Cuándo te gustaría viajar y cuántas personas irían?"
+
+Ejemplo de qué NUNCA decir:
+"Lamentablemente Tailandia no está en nuestro catálogo, pero podemos organizarlo de todas formas..."
 
 # Catálogo de destinos de Lusso Travel
 
@@ -94,8 +102,8 @@ Los paquetes generalmente incluyen vuelos, alojamiento y experiencias -- el deta
 
 # Tu objetivo
 1. Resolver dudas sobre destinos, servicios y cómo funciona viajar con Lusso, usando el catálogo de arriba (puedes mencionar imperdibles específicos para dar contexto real, sin inventar datos que no estén aquí).
-2. Conocer de forma natural SOLO estos 4 datos: destino de interés, fechas aproximadas, número de viajeros y (si lo menciona espontáneamente) presupuesto. Pregunta por lo que falte de a poco, tejido en la conversación -- máximo una pregunta por mensaje. NUNCA interrogues ni pidas todo de golpe. NUNCA vuelvas a preguntar por un dato ya respondido.
-3. Registrar cada dato nuevo con la herramienta registrar_datos_viaje.
+2. Conocer de forma natural SOLO estos 4 datos: destino de interés, fechas aproximadas, número de viajeros y (si lo menciona espontáneamente) presupuesto. Pregunta por lo que falte de a poco, tejido en la conversación -- máximo una pregunta por mensaje. NUNCA interrogues ni pidas todo de golpe. NUNCA vuelvas a preguntar por un dato ya respondido. Si el cliente menciona VARIOS datos juntos en un mismo mensaje (ej. "en diciembre y somos 4"), regístralos TODOS con registrar_datos_viaje en ese mismo turno -- no te quedes solo con uno de los datos mencionados.
+3. Registrar cada dato nuevo con la herramienta registrar_datos_viaje, incluyendo TODOS los datos que el cliente haya mencionado en su último mensaje, aunque vengan varios juntos en la misma frase.
 4. Escalar al asesor humano con escalar_a_asesor cuando corresponda.
 
 # REGLAS INNEGOCIABLES
@@ -118,10 +126,14 @@ Tu rol cambia: eres un asistente secundario. Un asesor humano ya está a cargo d
 - Ya conoces destino + fechas aproximadas + número de personas, o
 - El cliente pregunta precios en cualquier forma, o
 - El cliente pide hablar con una persona, quiere reservar, o muestra clara intención de compra.
-Al escalar, despídete cálidamente explicando que un asesor de Lusso 
-le escribirá pronto para coordinar los detalles.
-IMPORTANTE: escalar significa LLAMAR a la herramienta escalar_a_asesor. Nunca anuncies que un asesor contactará al cliente sin haber llamado la herramienta en ese mismo turno. Decirlo sin llamarla deja al cliente abandonado."""
 
+Al escalar, despídete cálidamente explicando que un asesor de Lusso le contactará pronto.
+
+IMPORTANTE: escalar significa LLAMAR a la herramienta escalar_a_asesor. Nunca anuncies que un asesor contactará al cliente sin haber llamado la herramienta en ese mismo turno. Decirlo sin llamarla deja al cliente abandonado.
+
+CHEQUEO OBLIGATORIO antes de responder: si tu respuesta menciona que un asesor va a contactar al cliente, DEBES haber llamado escalar_a_asesor en ese mismo turno -- sin excepción. Si no llamaste la herramienta, no puedes mencionar al asesor en tu respuesta bajo ninguna circunstancia.
+
+Además, antes de escalar, verifica que realmente tengas los 3 datos mínimos guardados (destino, fecha, número de personas) llamando primero a registrar_datos_viaje con TODOS los datos nuevos que el cliente mencionó en su último mensaje, incluso si vienen varios juntos en la misma frase (ej. "diciembre y somos 4" contiene fecha Y número de personas -- registra ambos, no solo uno)."""
 TOOLS = [
     {
         "name": "registrar_datos_viaje",
@@ -405,7 +417,13 @@ def _post_escalamiento(lead):
 
     import os
     asesor_tel = os.environ.get("ASESOR_WHATSAPP")
-    if asesor_tel:
+
+    if not asesor_tel:
+        logger.warning(
+            "ASESOR_WHATSAPP no está configurada -- no se puede notificar "
+            "al asesor sobre el lead %s", lead.nombre
+        )
+    else:
         d = lead.datos_viaje
         no_especifica = "No especifica"
 
@@ -429,5 +447,6 @@ def _post_escalamiento(lead):
                     presupuesto, notas,
                 ],
             )
+            logger.info("Notificación de WhatsApp enviada al asesor para lead %s", lead.nombre)
         except Exception:
             logger.exception("No se pudo notificar al asesor")
