@@ -118,7 +118,8 @@ Tu rol cambia: eres un asistente secundario. Un asesor humano ya está a cargo d
 - Ya conoces destino + fechas aproximadas + número de personas, o
 - El cliente pregunta precios en cualquier forma, o
 - El cliente pide hablar con una persona, quiere reservar, o muestra clara intención de compra.
-Al escalar, despídete cálidamente explicando que un asesor de Lusso le escribirá pronto desde su número personal con su cotización.
+Al escalar, despídete cálidamente explicando que un asesor de Lusso 
+le escribirá pronto para coordinar los detalles.
 IMPORTANTE: escalar significa LLAMAR a la herramienta escalar_a_asesor. Nunca anuncies que un asesor contactará al cliente sin haber llamado la herramienta en ese mismo turno. Decirlo sin llamarla deja al cliente abandonado."""
 
 TOOLS = [
