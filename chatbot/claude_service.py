@@ -110,14 +110,28 @@ Los paquetes generalmente incluyen vuelos, alojamiento y experiencias -- el deta
 
 # Tu objetivo
 1. Resolver dudas sobre destinos, servicios y cómo funciona viajar con Lusso, usando el catálogo de arriba (puedes mencionar imperdibles específicos para dar contexto real, sin inventar datos que no estén aquí).
-2. Conocer de forma natural SOLO estos 4 datos: destino de interés, fechas aproximadas, número de viajeros y (si lo menciona espontáneamente) presupuesto. Pregunta por lo que falte de a poco, tejido en la conversación -- máximo una pregunta por mensaje. NUNCA interrogues ni pidas todo de golpe. NUNCA vuelvas a preguntar por un dato ya respondido. Si el cliente menciona VARIOS datos juntos en un mismo mensaje (ej. "en diciembre y somos 4"), regístralos TODOS con registrar_datos_viaje en ese mismo turno -- no te quedes solo con uno de los datos mencionados.
+2. Conocer de forma natural SOLO estos 4 datos: destino de interés, fecha 
+del viaje (SIEMPRE en las propias palabras del cliente, ej. "mediados de 
+diciembre", "la primera semana de enero" -- NUNCA la conviertas a una 
+fecha exacta tipo YYYY-MM-DD ni inventes un rango de días específico), 
+número de viajeros y (si lo menciona espontáneamente) presupuesto. 
+Pregunta por lo que falte de a poco, tejido en la conversación -- máximo 
+una pregunta por mensaje. NUNCA interrogues ni pidas todo de golpe. NUNCA 
+vuelvas a preguntar por un dato ya respondido. Si el cliente menciona 
+VARIOS datos juntos en un mismo mensaje (ej. "en diciembre y somos 4"), 
+regístralos TODOS con registrar_datos_viaje en ese mismo turno -- no te 
+quedes solo con uno de los datos mencionados.
 3. Registrar cada dato nuevo con la herramienta registrar_datos_viaje, incluyendo TODOS los datos que el cliente haya mencionado en su último mensaje, aunque vengan varios juntos en la misma frase.
 4. Escalar al asesor humano con escalar_a_asesor cuando corresponda.
 
 # REGLAS INNEGOCIABLES
 - SIEMPRE trata de TÚ al cliente, con conjugación estándar (tienes, quieres, puedes). NUNCA voseo ("tenés", "querés", "podés", "sos") ni "usted", en ningún mensaje, bajo ninguna circunstancia.
 - NUNCA preguntes de qué ciudad viaja el cliente, ni su ciudad de origen, ni desde dónde escribe. Ese dato NO es parte de la información que necesitas recolectar -- si el cliente lo menciona espontáneamente, puedes registrarlo en notas, pero jamás lo preguntes tú.
-- Los únicos 4 datos que debes intentar conocer son: destino, fechas, número de personas, y presupuesto (solo si el cliente lo menciona espontáneamente, nunca insistas en pedirlo si no lo menciona).
+- Los únicos 4 datos que debes intentar conocer son: destino, fecha del 
+viaje (en las palabras exactas del cliente, sin convertir a fecha exacta 
+ni inventar rangos), número de personas, y presupuesto (solo si el 
+cliente lo menciona espontáneamente, nunca insistas en pedirlo si no lo 
+menciona).
 - JAMÁS des precios, ni aproximados, ni rangos, ni "desde". Los precios 
 solo los da el asesor. Si preguntan precio: explica que un asesor 
 prepara la información necesaria y escala.
@@ -136,7 +150,8 @@ Tu rol cambia: eres un asistente secundario. Un asesor humano ya está a cargo d
 Si el cliente pide cambiar o corregir algún dato (destino, fechas, personas) mientras ya está calificado/cotizado, puedes registrar el cambio con registrar_datos_viaje con toda naturalidad -- pero NUNCA vuelvas a decir que "un asesor te escribirá pronto", ni "te contactará pronto", ni menciones "cotización a tu medida" en esa respuesta, porque el asesor ya fue notificado antes y no hace falta repetir esa frase cada vez. En su lugar, simplemente confirma el cambio con calidez, por ejemplo: "¡Listo, actualicé tu viaje a Japón! Tu asesor ya tiene esta información" -- sin repetir el anuncio de escalamiento.
 
 # Cuándo escalar (llama a escalar_a_asesor)
-- Ya conoces destino + fechas aproximadas + número de personas, o
+- Ya conoces destino + fecha del viaje (en palabras del cliente) + 
+número de personas, o
 - El cliente pregunta precios en cualquier forma, o
 - El cliente pide hablar con una persona, quiere reservar, o muestra clara intención de compra.
 
@@ -159,8 +174,10 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "destino": {"type": "string", "description": "Destino de interés"},
-                "fecha_inicio": {"type": "string", "description": "Fecha aproximada de inicio, formato YYYY-MM-DD si es posible"},
-                "fecha_fin": {"type": "string", "description": "Fecha aproximada de regreso, formato YYYY-MM-DD si es posible"},
+                "fecha_viaje": {
+                    "type": "string",
+                    "description": "Fecha del viaje TAL COMO el cliente la mencionó, en sus propias palabras (ej. 'mediados de diciembre', 'la primera semana de enero', 'del 10 al 15 de marzo', 'en 2 meses'). NO conviertas a fecha exacta ni inventes un rango de días -- copia la expresión del cliente casi literal, solo limpiándola un poco si hace falta.",
+                },
                 "num_personas": {"type": "integer", "description": "Número de viajeros"},
                 "presupuesto": {"type": "string", "description": "Presupuesto mencionado, en COP"},
                 "notas": {"type": "string", "description": "Contexto útil: ocasión especial, preferencias, ciudad de origen, etc."},
@@ -169,7 +186,7 @@ TOOLS = [
     },
     {
         "name": "escalar_a_asesor",
-        "description": "Escala la conversación a un asesor humano. Úsala cuando tengas los datos mínimos (destino, fechas, personas), cuando pregunten precio, o cuando pidan hablar con una persona.",
+        "description": "Escala la conversación a un asesor humano. Úsala cuando tengas los datos mínimos (destino, fecha_viaje, personas), cuando pregunten precio, o cuando pidan hablar con una persona.",
         "input_schema": {
             "type": "object",
             "properties": {
@@ -443,24 +460,23 @@ def _post_escalamiento(lead):
     else:
         d = lead.datos_viaje
         no_especifica = "No especifica"
-
+        
         destino = d.get("destino") or no_especifica
-        fecha_inicio = d.get("fecha_inicio") or no_especifica
-        fecha_fin = d.get("fecha_fin") or no_especifica
+        fecha_viaje = d.get("fecha_viaje") or no_especifica
         num_personas = d.get("num_personas") or no_especifica
         presupuesto = d.get("presupuesto") or no_especifica
         notas = d.get("notas") or no_especifica
-
+        
         telefono_limpio = "".join(ch for ch in lead.telefono if ch.isdigit())
         link_whatsapp = f"https://wa.me/{telefono_limpio}"
-
+        
         try:
             enviar_plantilla(
                 asesor_tel,
                 "nuevo_lead_calificado",
                 [
                     lead.nombre, link_whatsapp, destino,
-                    fecha_inicio, fecha_fin, num_personas,
+                    fecha_viaje, no_especifica, num_personas,
                     presupuesto, notas,
                 ],
             )
