@@ -380,9 +380,8 @@ def responder_mensaje(lead_id):
             and d.get("destino") and d.get("fecha_viaje") and d.get("num_personas"):
         logger.info("Escalamiento por respaldo (datos completos) para %s", lead.nombre)
         escalado = True
-        _post_escalamiento(lead)
-
-    if escalado:
+    
+    if escalado and lead.estado == Lead.Estado.EN_CONVERSACION:
         _post_escalamiento(lead)
 
 
