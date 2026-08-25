@@ -161,6 +161,15 @@ sin agregar detalles extra sobre alojamiento, actividades ni nada más):
 "Un asesor de Lusso te contactará pronto para hablar de los detalles."
 No agregues nada después de esta frase salvo, como máximo, un emoji.
 
+IMPORTANTE: si en este turno decides llamar escalar_a_asesor, tu 
+respuesta de texto en ESE MISMO turno debe ser SOLO la despedida de 
+arriba -- nunca hagas una pregunta de seguimiento (como "¿tienen 
+presupuesto en mente?") en el mismo mensaje donde escalas. Si quieres 
+preguntar por presupuesto u otro dato opcional, hazlo ANTES de escalar, 
+en un turno previo -- pero una vez que decidiste escalar, ese turno es 
+exclusivamente para despedirte con la frase exacta, no para seguir la 
+conversación.
+
 IMPORTANTE: escalar significa LLAMAR a la herramienta escalar_a_asesor. Nunca anuncies que un asesor contactará al cliente sin haber llamado la herramienta en ese mismo turno. Decirlo sin llamarla deja al cliente abandonado.
 
 CHEQUEO OBLIGATORIO antes de responder: si tu respuesta menciona que un asesor va a contactar al cliente, DEBES haber llamado escalar_a_asesor en ese mismo turno -- sin excepción. Si no llamaste la herramienta, no puedes mencionar al asesor en tu respuesta bajo ninguna circunstancia.
@@ -380,7 +389,7 @@ def responder_mensaje(lead_id):
             and d.get("destino") and d.get("fecha_viaje") and d.get("num_personas"):
         logger.info("Escalamiento por respaldo (datos completos) para %s", lead.nombre)
         escalado = True
-    
+
     if escalado and lead.estado == Lead.Estado.EN_CONVERSACION:
         _post_escalamiento(lead)
 
