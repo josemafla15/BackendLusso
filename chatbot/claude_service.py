@@ -314,11 +314,10 @@ def _log_uso_cache(lead_id, response):
 
 
 def responder_mensaje(lead_id):
-    """Genera y envía la respuesta del bot para el último estado de la conversación."""
     from .whatsapp import enviar_texto
 
     lead = Lead.objects.get(id=lead_id)
-    client = Anthropic()  # toma ANTHROPIC_API_KEY del entorno
+    client = Anthropic()
 
     historial = _construir_historial(lead)
     if not historial:
@@ -326,21 +325,16 @@ def responder_mensaje(lead_id):
 
     escalado = False
     respuesta_texto = ""
+    forzado_ya = False  # evita reintentar el forzado más de una vez
 
-    # Bucle de tool use: Claude puede llamar herramientas antes de responder
     messages = historial
-    for _ in range(5):  # tope de seguridad de iteraciones
-        messages = _marcar_ultimo_bloque_cacheable(messages)  # fix de caching
+    for _ in range(5):
+        messages = _marcar_ultimo_bloque_cacheable(messages)
 
         response = client.messages.create(
             model=MODELO,
             max_tokens=300,
             system=[
-                # SIN cache_control aquí: un solo breakpoint al final del
-                # historial ya cubre tools + system + mensajes, en ese
-                # orden, hasta el punto marcado. Tener DOS breakpoints
-                # (uno fijo aquí + uno móvil en messages) parecía estar
-                # impidiendo que el cache diera hit entre mensajes.
                 {"type": "text", "text": _system_prompt()},
                 {"type": "text", "text": f"Estado actual de este lead: {lead.estado}."},
             ],
@@ -348,30 +342,62 @@ def responder_mensaje(lead_id):
             messages=messages,
         )
 
-        _log_uso_cache(lead_id, response)  # NUEVO: verificación de caching
+        _log_uso_cache(lead_id, response)
 
         texto_turno = "".join(b.text for b in response.content if b.type == "text").strip()
-        if texto_turno:
-            respuesta_texto = f"{respuesta_texto}\n{texto_turno}".strip() if respuesta_texto else texto_turno
 
-        if response.stop_reason != "tool_use":
-            break
+        if response.stop_reason == "tool_use":
+            respuesta_texto = f"{respuesta_texto}\n{texto_turno}".strip() if texto_turno else respuesta_texto
 
-        tool_results = []
-        for block in response.content:
-            if block.type != "tool_use":
-                continue
-            resultado = _ejecutar_tool(lead, block.name, block.input)
-            if block.name == "escalar_a_asesor":
-                escalado = True
-            tool_results.append(
-                {"type": "tool_result", "tool_use_id": block.id, "content": json.dumps(resultado)}
+            tool_results = []
+            for block in response.content:
+                if block.type != "tool_use":
+                    continue
+                resultado = _ejecutar_tool(lead, block.name, block.input)
+                if block.name == "escalar_a_asesor":
+                    escalado = True
+                tool_results.append(
+                    {"type": "tool_result", "tool_use_id": block.id, "content": json.dumps(resultado)}
+                )
+
+            messages = messages + [
+                {"role": "assistant", "content": response.content},
+                {"role": "user", "content": tool_results},
+            ]
+            continue
+
+        # stop_reason distinto de tool_use -> Claude ya "terminó" el turno
+        respuesta_texto = texto_turno or respuesta_texto
+
+        d = lead.datos_viaje
+        datos_completos = d.get("destino") and d.get("fecha_viaje") and d.get("num_personas")
+
+        if not escalado and not forzado_ya and lead.estado == Lead.Estado.EN_CONVERSACION and datos_completos:
+            logger.warning(
+                "Claude no escaló con datos completos para lead %s -- forzando turno de escalamiento",
+                lead.nombre,
             )
+            forzado_ya = True
+            messages = messages + [
+                {"role": "assistant", "content": response.content},
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                "[sistema] Ya tienes destino, fecha del viaje y número de "
+                                "personas registrados. Debes llamar a escalar_a_asesor ahora "
+                                "mismo y responder solo con la despedida exacta indicada en "
+                                "tus instrucciones."
+                            ),
+                        }
+                    ],
+                },
+            ]
+            continue  # una vuelta más del loop, con el mismo tope de 5
 
-        messages = messages + [
-            {"role": "assistant", "content": response.content},
-            {"role": "user", "content": tool_results},
-        ]
+        break
     else:
         logger.warning("Tope de iteraciones de tool use alcanzado para lead %s", lead_id)
 
@@ -382,18 +408,9 @@ def responder_mensaje(lead_id):
     enviar_texto(lead.telefono, respuesta_texto)
     Mensaje.objects.create(lead=lead, rol=Mensaje.Rol.BOT, contenido=respuesta_texto)
 
-    # Respaldo determinista: si Claude no escaló pero los datos mínimos están
-    # completos y el lead sigue en conversación, escalamos de todos modos.
-    d = lead.datos_viaje
-    if not escalado and lead.estado == Lead.Estado.EN_CONVERSACION \
-            and d.get("destino") and d.get("fecha_viaje") and d.get("num_personas"):
-        logger.info("Escalamiento por respaldo (datos completos) para %s", lead.nombre)
-        escalado = True
-
     if escalado and lead.estado == Lead.Estado.EN_CONVERSACION:
         _post_escalamiento(lead)
-
-
+        
 def _construir_historial(lead):
     """Convierte los últimos mensajes de la BD al formato de la API de Claude.
 
