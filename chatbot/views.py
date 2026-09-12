@@ -72,6 +72,13 @@ def _procesar_valor(value):
         wa_message_id = msg.get("id")
         tipo = msg.get("type")
 
+        if not telefono:
+            logger.warning(
+                "Mensaje sin remitente (from vacío) — payload completo: %s",
+                json.dumps(msg, ensure_ascii=False),
+            )
+            continue
+
         if tipo == "text":
             contenido = msg.get("text", {}).get("body", "")
         else:
