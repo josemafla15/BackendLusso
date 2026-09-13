@@ -68,7 +68,7 @@ def _procesar_valor(value):
         nombre_wa = contactos[0].get("profile", {}).get("name", "")
 
     for msg in mensajes:
-        telefono = msg.get("from")
+        telefono = msg.get("from") or msg.get("from_user_id")
         wa_message_id = msg.get("id")
         tipo = msg.get("type")
 

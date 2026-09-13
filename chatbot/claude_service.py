@@ -539,8 +539,15 @@ def _post_escalamiento(lead):
         presupuesto = d.get("presupuesto") or no_especifica
         notas = d.get("notas") or no_especifica
         
-        telefono_limpio = "".join(ch for ch in lead.telefono if ch.isdigit())
-        link_whatsapp = f"https://wa.me/{telefono_limpio}"
+        if lead.telefono.isdigit():
+            telefono_limpio = "".join(ch for ch in lead.telefono if ch.isdigit())
+            link_whatsapp = f"https://wa.me/{telefono_limpio}"
+        else:
+            # El cliente escribió con username de WhatsApp -- Meta no
+            # comparte su número real, así que no existe un link wa.me
+            # posible. El asesor NO podrá contactarlo por su WhatsApp
+            # personal; solo el bot puede seguir la conversación con él.
+            link_whatsapp = "Sin número (cliente con username — solo contactable vía bot)"
         
         try:
             enviar_plantilla(
