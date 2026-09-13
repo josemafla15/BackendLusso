@@ -711,7 +711,16 @@ def _post_escalamiento(lead):
             # El cliente escribió con username, pero compartió un número
             # alternativo cuando el bot se lo pidió -- usamos ese.
             telefono_limpio = "".join(ch for ch in d["telefono_alternativo"] if ch.isdigit())
+            # Clientes locales suelen escribir el número sin indicativo de
+            # país (ej. "3001234567" en vez de "573001234567"). Si detectamos
+            # el patrón típico de un celular colombiano (10 dígitos, empieza
+            # por 3) sin el indicativo, se lo agregamos -- si no, lo dejamos
+            # tal cual (podría ser un número de otro país si el cliente lo
+            # escribió completo).
+            if len(telefono_limpio) == 10 and telefono_limpio.startswith("3"):
+                telefono_limpio = f"57{telefono_limpio}"
             link_whatsapp = f"https://wa.me/{telefono_limpio}"
+            
         else:
             # El cliente escribió con username de WhatsApp y no compartió
             # un número alternativo -- Meta no comparte su número real, así
