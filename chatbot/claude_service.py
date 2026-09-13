@@ -366,9 +366,24 @@ def responder_mensaje(lead_id):
     if not historial:
         return
 
+    # Snapshot de si el presupuesto ya se había preguntado/mencionado ANTES
+    # de este turno -- necesario para que el forzado de escalamiento no
+    # dispare en el MISMO mensaje donde Claude acaba de preguntarlo por
+    # primera vez (eso mezclaría la pregunta con la despedida de escalamiento).
+    d_inicial = lead.datos_viaje
+    presupuesto_listo_antes = bool(
+        d_inicial.get("presupuesto") or d_inicial.get("presupuesto_preguntado")
+    )
+
     escalado = False
     respuesta_texto = ""
     forzado_ya = False  # evita reintentar el forzado más de una vez
+
+    presupuesto_bloqueado_este_run = False  # se activa si en ESTE mismo
+    # mensaje Claude acaba de preguntar presupuesto por primera vez
+    # (transición false -> true dentro de esta ejecución) sin que el
+    # cliente haya dado un valor real todavía. Mientras esté activo,
+    # cualquier intento de escalar_a_asesor en este mismo run se rechaza.
 
     messages = historial
     for _ in range(5):
@@ -390,15 +405,77 @@ def responder_mensaje(lead_id):
         texto_turno = "".join(b.text for b in response.content if b.type == "text").strip()
 
         if response.stop_reason == "tool_use":
+            tool_use_blocks = [b for b in response.content if b.type == "tool_use"]
+
+            # ¿Algún bloque intenta escalar mientras el presupuesto está
+            # "recién preguntado" en este mismo run, sin valor real?
+            intento_escalar_prematuro = presupuesto_bloqueado_este_run and any(
+                b.name == "escalar_a_asesor" for b in tool_use_blocks
+            )
+
+            if intento_escalar_prematuro:
+                # Rechazamos el escalamiento: NO se agrega texto_turno a
+                # respuesta_texto (así la despedida nunca se mezcla con la
+                # pregunta), no se marca escalado=True, y le devolvemos a
+                # Claude un resultado que le explica por qué se rechazó.
+                logger.warning(
+                    "Lead %s: Claude intentó escalar en el mismo turno donde "
+                    "recién preguntó presupuesto -- rechazado, se espera "
+                    "la respuesta real del cliente.",
+                    lead.nombre,
+                )
+                tool_results = []
+                for block in tool_use_blocks:
+                    if block.name == "escalar_a_asesor":
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": json.dumps({
+                                "ok": False,
+                                "error": (
+                                    "Todavía no -- acabas de preguntar por el "
+                                    "presupuesto en este mismo mensaje. Debes "
+                                    "esperar la respuesta del cliente en su "
+                                    "próximo mensaje antes de escalar."
+                                ),
+                            }),
+                        })
+                    else:
+                        resultado = _ejecutar_tool(lead, block.name, block.input)
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": json.dumps(resultado),
+                        })
+
+                messages = messages + [
+                    {"role": "assistant", "content": response.content},
+                    {"role": "user", "content": tool_results},
+                ]
+                continue
+
+            # Camino normal (sin intento prematuro de escalar)
             respuesta_texto = f"{respuesta_texto}\n{texto_turno}".strip() if texto_turno else respuesta_texto
 
             tool_results = []
-            for block in response.content:
-                if block.type != "tool_use":
-                    continue
+            for block in tool_use_blocks:
                 resultado = _ejecutar_tool(lead, block.name, block.input)
+
+                if block.name == "registrar_datos_viaje":
+                    # Detecta la transición false -> true del
+                    # presupuesto_preguntado, SOLO si no hay un valor real
+                    # de presupuesto (ni antes ni en este mismo bloque).
+                    tiene_valor_real = bool(lead.datos_viaje.get("presupuesto"))
+                    if (
+                        not presupuesto_listo_antes
+                        and block.input.get("presupuesto_preguntado")
+                        and not tiene_valor_real
+                    ):
+                        presupuesto_bloqueado_este_run = True
+
                 if block.name == "escalar_a_asesor":
                     escalado = True
+
                 tool_results.append(
                     {"type": "tool_result", "tool_use_id": block.id, "content": json.dumps(resultado)}
                 )
@@ -414,7 +491,11 @@ def responder_mensaje(lead_id):
 
         d = lead.datos_viaje
         datos_completos = d.get("destino") and d.get("fecha_viaje") and d.get("num_personas")
-        presupuesto_listo = bool(d.get("presupuesto") or d.get("presupuesto_preguntado"))
+        # Usamos el snapshot de ANTES de este turno -- si Claude acaba de
+        # preguntar el presupuesto ahora mismo, presupuesto_listo_antes
+        # sigue en False, así que el forzado espera al próximo mensaje
+        # real del cliente en vez de escalar en la misma respuesta.
+        presupuesto_listo = presupuesto_listo_antes
 
         if not escalado and not forzado_ya and lead.estado == Lead.Estado.EN_CONVERSACION \
                 and datos_completos and presupuesto_listo:
