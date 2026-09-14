@@ -398,30 +398,27 @@ def responder_mensaje(lead_id):
     if not historial:
         return
 
-    d_inicial = lead.datos_viaje
-    presupuesto_listo_antes = bool(
-        d_inicial.get("presupuesto") or d_inicial.get("presupuesto_preguntado")
-    )
     es_username = not lead.telefono.isdigit()
-    telefono_listo_antes = bool(
-        not es_username
-        or d_inicial.get("telefono_alternativo")
-        or d_inicial.get("telefono_preguntado")
-    )
 
     escalado = False
     respuesta_texto = ""
     forzado_ya = False
 
-    bloqueado_este_run = False  # se activa si en ESTE mismo mensaje Claude
-    # acaba de preguntar presupuesto O teléfono alternativo por primera vez
-    # (transición false -> true dentro de esta ejecución, sin valor real
-    # todavía). Mientras esté activo, cualquier intento de escalar_a_asesor
-    # en este mismo run se rechaza -- así nunca se mezcla la pregunta con
-    # la despedida.
-
     messages = historial
     for _ in range(5):
+        # Snapshot tomado al INICIO de esta vuelta del bucle -- representa
+        # lo que ya estaba resuelto ANTES de que Claude haga nada en esta
+        # vuelta. Se usa como el único criterio para decidir si un intento
+        # de escalar_a_asesor es válido, sin importar si Claude preguntó
+        # algo en esta misma vuelta o se lo saltó por completo.
+        d_iter = lead.datos_viaje
+        presupuesto_ok = bool(d_iter.get("presupuesto") or d_iter.get("presupuesto_preguntado"))
+        telefono_ok = bool(
+            not es_username
+            or d_iter.get("telefono_alternativo")
+            or d_iter.get("telefono_preguntado")
+        )
+
         messages = _marcar_ultimo_bloque_cacheable(messages)
 
         response = client.messages.create(
@@ -451,38 +448,28 @@ def responder_mensaje(lead_id):
         if response.stop_reason == "tool_use":
             tool_use_blocks = [b for b in response.content if b.type == "tool_use"]
 
-            # NUEVO: revisa si ESTA MISMA vuelta (no solo vueltas
-            # anteriores) contiene una pregunta de presupuesto o teléfono
-            # por primera vez -- para blindar el caso de que Claude intente
-            # preguntar Y escalar en un solo turno, simultáneamente.
-            pregunta_presupuesto_este_turno = any(
-                b.name == "registrar_datos_viaje"
-                and not presupuesto_listo_antes
-                and b.input.get("presupuesto_preguntado")
-                and not lead.datos_viaje.get("presupuesto")
-                for b in tool_use_blocks
-            )
-            pregunta_telefono_este_turno = any(
-                b.name == "registrar_datos_viaje"
-                and not telefono_listo_antes
-                and b.input.get("telefono_preguntado")
-                and not lead.datos_viaje.get("telefono_alternativo")
-                for b in tool_use_blocks
-            )
+            intenta_escalar = any(b.name == "escalar_a_asesor" for b in tool_use_blocks)
+            requisitos_incompletos = not (presupuesto_ok and telefono_ok)
 
-            intento_escalar_prematuro = (
-                bloqueado_este_run
-                or pregunta_presupuesto_este_turno
-                or pregunta_telefono_este_turno
-            ) and any(b.name == "escalar_a_asesor" for b in tool_use_blocks)
+            if intenta_escalar and requisitos_incompletos:
+                # Rechazo incondicional: sin importar si Claude preguntó
+                # algo en esta misma vuelta o se lo saltó, si el requisito
+                # no estaba resuelto ANTES de esta vuelta, no se escala.
+                # Descartamos TODO el texto de esta vuelta (no solo el de
+                # escalar) para nunca enviar un mensaje a medias o
+                # confuso -- Claude reintentará limpio en la vuelta
+                # siguiente, ya sin ningún intento de escalar de por medio.
+                faltantes = []
+                if not presupuesto_ok:
+                    faltantes.append("el presupuesto")
+                if not telefono_ok:
+                    faltantes.append("un número de WhatsApp alternativo (el cliente escribe con username)")
 
-            if intento_escalar_prematuro:
                 logger.warning(
-                    "Lead %s: Claude intentó escalar en el mismo turno donde "
-                    "recién preguntó presupuesto o teléfono -- rechazado, se "
-                    "espera la respuesta real del cliente.",
-                    lead.nombre,
+                    "Lead %s: Claude intentó escalar sin tener resuelto: %s -- rechazado.",
+                    lead.nombre, ", ".join(faltantes),
                 )
+
                 tool_results = []
                 for block in tool_use_blocks:
                     if block.name == "escalar_a_asesor":
@@ -492,39 +479,15 @@ def responder_mensaje(lead_id):
                             "content": json.dumps({
                                 "ok": False,
                                 "error": (
-                                    "Todavía no -- acabas de hacer una pregunta en "
-                                    "este mismo mensaje. Debes esperar la respuesta "
-                                    "del cliente en su próximo mensaje antes de "
-                                    "escalar."
+                                    f"Todavía no puedes escalar -- primero debes "
+                                    f"preguntarle al cliente por {' y '.join(faltantes)}, "
+                                    f"y esperar su respuesta en un mensaje nuevo antes "
+                                    f"de escalar."
                                 ),
                             }),
                         })
                     else:
                         resultado = _ejecutar_tool(lead, block.name, block.input)
-
-                        # Igual que en el camino normal: si este bloque
-                        # (rechazado el escalar, pero este otro sí se
-                        # ejecuta) acaba de preguntar presupuesto/teléfono
-                        # por primera vez, marcamos bloqueado_este_run para
-                        # que vueltas futuras de este mismo run también
-                        # queden protegidas.
-                        if block.name == "registrar_datos_viaje":
-                            tiene_presupuesto_real = bool(lead.datos_viaje.get("presupuesto"))
-                            if (
-                                not presupuesto_listo_antes
-                                and block.input.get("presupuesto_preguntado")
-                                and not tiene_presupuesto_real
-                            ):
-                                bloqueado_este_run = True
-
-                            tiene_telefono_real = bool(lead.datos_viaje.get("telefono_alternativo"))
-                            if (
-                                not telefono_listo_antes
-                                and block.input.get("telefono_preguntado")
-                                and not tiene_telefono_real
-                            ):
-                                bloqueado_este_run = True
-
                         tool_results.append({
                             "type": "tool_result",
                             "tool_use_id": block.id,
@@ -537,32 +500,14 @@ def responder_mensaje(lead_id):
                 ]
                 continue
 
+            # Camino normal: no hay intento de escalar inválido
             respuesta_texto = f"{respuesta_texto}\n{texto_turno}".strip() if texto_turno else respuesta_texto
 
             tool_results = []
             for block in tool_use_blocks:
                 resultado = _ejecutar_tool(lead, block.name, block.input)
-
-                if block.name == "registrar_datos_viaje":
-                    tiene_presupuesto_real = bool(lead.datos_viaje.get("presupuesto"))
-                    if (
-                        not presupuesto_listo_antes
-                        and block.input.get("presupuesto_preguntado")
-                        and not tiene_presupuesto_real
-                    ):
-                        bloqueado_este_run = True
-
-                    tiene_telefono_real = bool(lead.datos_viaje.get("telefono_alternativo"))
-                    if (
-                        not telefono_listo_antes
-                        and block.input.get("telefono_preguntado")
-                        and not tiene_telefono_real
-                    ):
-                        bloqueado_este_run = True
-
                 if block.name == "escalar_a_asesor":
                     escalado = True
-
                 tool_results.append(
                     {"type": "tool_result", "tool_use_id": block.id, "content": json.dumps(resultado)}
                 )
@@ -573,12 +518,13 @@ def responder_mensaje(lead_id):
             ]
             continue
 
+        # stop_reason distinto de tool_use -> Claude ya "terminó" el turno
         respuesta_texto = texto_turno or respuesta_texto
 
         d = lead.datos_viaje
         datos_completos = d.get("destino") and d.get("fecha_viaje") and d.get("num_personas")
-        presupuesto_listo = presupuesto_listo_antes
-        telefono_listo = telefono_listo_antes
+        presupuesto_listo = presupuesto_ok
+        telefono_listo = telefono_ok
 
         if not escalado and not forzado_ya and lead.estado == Lead.Estado.EN_CONVERSACION \
                 and datos_completos and presupuesto_listo and telefono_listo:
@@ -619,7 +565,6 @@ def responder_mensaje(lead_id):
 
     if escalado and lead.estado == Lead.Estado.EN_CONVERSACION:
         _post_escalamiento(lead)
-
 
 
 def _construir_historial(lead):
@@ -720,7 +665,7 @@ def _post_escalamiento(lead):
             if len(telefono_limpio) == 10 and telefono_limpio.startswith("3"):
                 telefono_limpio = f"57{telefono_limpio}"
             link_whatsapp = f"https://wa.me/{telefono_limpio}"
-            
+
         else:
             # El cliente escribió con username de WhatsApp y no compartió
             # un número alternativo -- Meta no comparte su número real, así
