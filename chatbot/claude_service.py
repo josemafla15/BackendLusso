@@ -387,7 +387,6 @@ def _log_uso_cache(lead_id, response):
     logger.info("CACHE lead=%s: costo de esta llamada = $%.6f", lead_id, costo)
     return costo
 
-
 def responder_mensaje(lead_id):
     from .whatsapp import enviar_texto
 
@@ -400,25 +399,27 @@ def responder_mensaje(lead_id):
 
     es_username = not lead.telefono.isdigit()
 
+    # Snapshot tomado UNA SOLA VEZ, al principio de toda la ejecución --
+    # representa lo que ya estaba resuelto ANTES de que el cliente mandara
+    # este mensaje. Es el ÚNICO criterio para decidir si escalar_a_asesor
+    # es válido, sin importar cuántas vueltas internas del bucle use Claude
+    # para procesar este mensaje -- así nunca se "libera" el permiso de
+    # escalar a mitad de camino solo porque una vuelta anterior (dentro del
+    # mismo mensaje) acaba de preguntar algo.
+    d_inicial = lead.datos_viaje
+    presupuesto_ok = bool(d_inicial.get("presupuesto") or d_inicial.get("presupuesto_preguntado"))
+    telefono_ok = bool(
+        not es_username
+        or d_inicial.get("telefono_alternativo")
+        or d_inicial.get("telefono_preguntado")
+    )
+
     escalado = False
     respuesta_texto = ""
     forzado_ya = False
 
     messages = historial
     for _ in range(5):
-        # Snapshot tomado al INICIO de esta vuelta del bucle -- representa
-        # lo que ya estaba resuelto ANTES de que Claude haga nada en esta
-        # vuelta. Se usa como el único criterio para decidir si un intento
-        # de escalar_a_asesor es válido, sin importar si Claude preguntó
-        # algo en esta misma vuelta o se lo saltó por completo.
-        d_iter = lead.datos_viaje
-        presupuesto_ok = bool(d_iter.get("presupuesto") or d_iter.get("presupuesto_preguntado"))
-        telefono_ok = bool(
-            not es_username
-            or d_iter.get("telefono_alternativo")
-            or d_iter.get("telefono_preguntado")
-        )
-
         messages = _marcar_ultimo_bloque_cacheable(messages)
 
         response = client.messages.create(
@@ -452,13 +453,11 @@ def responder_mensaje(lead_id):
             requisitos_incompletos = not (presupuesto_ok and telefono_ok)
 
             if intenta_escalar and requisitos_incompletos:
-                # Rechazo incondicional: sin importar si Claude preguntó
-                # algo en esta misma vuelta o se lo saltó, si el requisito
-                # no estaba resuelto ANTES de esta vuelta, no se escala.
-                # Descartamos TODO el texto de esta vuelta (no solo el de
-                # escalar) para nunca enviar un mensaje a medias o
-                # confuso -- Claude reintentará limpio en la vuelta
-                # siguiente, ya sin ningún intento de escalar de por medio.
+                # Rechazo incondicional, usando el snapshot de TODO el run
+                # (no de esta vuelta). Descartamos TODO el texto de esta
+                # vuelta para nunca enviar un mensaje a medias -- Claude
+                # reintenta limpio en la vuelta siguiente, sin ningún
+                # intento de escalar de por medio.
                 faltantes = []
                 if not presupuesto_ok:
                     faltantes.append("el presupuesto")
