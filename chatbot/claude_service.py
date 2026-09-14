@@ -404,7 +404,7 @@ def responder_mensaje(lead_id):
 
     es_username = not lead.telefono.isdigit()
 
-    # Estos DOS flags sí se congelan al inicio del mensaje -- representan
+    # Estos DOS flags se congelan al inicio del mensaje -- representan
     # "ya se había preguntado/aclarado ANTES de este mensaje". Sirven para
     # evitar que preguntar y escalar se mezclen en el mismo mensaje.
     d_inicial = lead.datos_viaje
@@ -469,8 +469,6 @@ def responder_mensaje(lead_id):
                 if block.name != "escalar_a_asesor":
                     resultados_por_bloque[block.id] = _ejecutar_tool(lead, block.name, block.input)
 
-            # Ahora sí, con lead.datos_viaje al día, evaluamos si el/los
-            # intento(s) de escalar son válidos.
             requisitos_incompletos = not (presupuesto_listo() and telefono_listo())
             intenta_escalar = any(b.name == "escalar_a_asesor" for b in tool_use_blocks)
 
@@ -486,9 +484,6 @@ def responder_mensaje(lead_id):
                     lead.nombre, ", ".join(faltantes),
                 )
 
-                # Descartamos TODO el texto de esta vuelta para nunca
-                # enviar un mensaje a medias -- Claude reintenta limpio en
-                # la vuelta siguiente.
                 tool_results = []
                 for block in tool_use_blocks:
                     if block.name == "escalar_a_asesor":
@@ -572,6 +567,11 @@ def responder_mensaje(lead_id):
 
         if not escalado and forzado_ya and lead.estado == Lead.Estado.EN_CONVERSACION \
                 and datos_completos and presupuesto_listo() and telefono_listo():
+            # Ya forzamos una vez y Claude no cumplió (no llamó la
+            # herramienta, o inventó una respuesta rara en su lugar). En
+            # vez de confiar en un segundo intento, ejecutamos el
+            # escalamiento nosotros mismos en código y sobreescribimos
+            # cualquier texto que Claude haya generado.
             logger.error(
                 "Lead %s: Claude no llamó a escalar_a_asesor tras ser "
                 "forzado -- ejecutando el escalamiento directamente en "
@@ -584,6 +584,17 @@ def responder_mensaje(lead_id):
         break
     else:
         logger.warning("Tope de iteraciones de tool use alcanzado para lead %s", lead_id)
+
+    # Si el bot está a punto de mandar una respuesta y ya tiene destino+
+    # fecha+personas pero todavía no presupuesto, aseguramos en código que
+    # presupuesto_preguntado quede en true -- sin depender de que Claude
+    # se acuerde de marcarlo en el mismo turno en que pregunta. Así, el
+    # PRÓXIMO mensaje del cliente siempre encuentra el estado correcto,
+    # sin importar si Claude olvidó la bandera esta vez.
+    d_final = lead.datos_viaje
+    datos_completos_final = d_final.get("destino") and d_final.get("fecha_viaje") and d_final.get("num_personas")
+    if datos_completos_final and not d_final.get("presupuesto") and not d_final.get("presupuesto_preguntado"):
+        _ejecutar_tool(lead, "registrar_datos_viaje", {"presupuesto_preguntado": True})
 
     if not respuesta_texto:
         logger.warning("Respuesta vacía de Claude para lead %s — no se envía nada", lead_id)
