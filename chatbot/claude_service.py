@@ -392,7 +392,6 @@ def _log_uso_cache(lead_id, response):
     )
     logger.info("CACHE lead=%s: costo de esta llamada = $%.6f", lead_id, costo)
     return costo
-
 def responder_mensaje(lead_id):
     from .whatsapp import enviar_texto
 
@@ -405,20 +404,25 @@ def responder_mensaje(lead_id):
 
     es_username = not lead.telefono.isdigit()
 
-    # Snapshot tomado UNA SOLA VEZ, al principio de toda la ejecución --
-    # representa lo que ya estaba resuelto ANTES de que el cliente mandara
-    # este mensaje. Es el ÚNICO criterio para decidir si escalar_a_asesor
-    # es válido, sin importar cuántas vueltas internas del bucle use Claude
-    # para procesar este mensaje -- así nunca se "libera" el permiso de
-    # escalar a mitad de camino solo porque una vuelta anterior (dentro del
-    # mismo mensaje) acaba de preguntar algo.
+    # Estos DOS flags sí se congelan al inicio del mensaje -- representan
+    # "ya se había preguntado/aclarado ANTES de este mensaje". Sirven para
+    # evitar que preguntar y escalar se mezclen en el mismo mensaje.
     d_inicial = lead.datos_viaje
-    presupuesto_ok = bool(d_inicial.get("presupuesto") or d_inicial.get("presupuesto_preguntado"))
-    telefono_ok = bool(
-        not es_username
-        or d_inicial.get("telefono_alternativo")
-        or d_inicial.get("telefono_aclarado")
-    )
+    presupuesto_preguntado_antes = bool(d_inicial.get("presupuesto_preguntado"))
+    telefono_aclarado_antes = bool(d_inicial.get("telefono_aclarado"))
+
+    def presupuesto_listo():
+        # El VALOR real se revisa en VIVO (puede haberse dado en este
+        # mismo mensaje) -- solo la bandera de "ya se preguntó" usa el
+        # snapshot congelado.
+        return bool(lead.datos_viaje.get("presupuesto")) or presupuesto_preguntado_antes
+
+    def telefono_listo():
+        return (
+            not es_username
+            or bool(lead.datos_viaje.get("telefono_alternativo"))
+            or telefono_aclarado_antes
+        )
 
     escalado = False
     respuesta_texto = ""
@@ -455,19 +459,26 @@ def responder_mensaje(lead_id):
         if response.stop_reason == "tool_use":
             tool_use_blocks = [b for b in response.content if b.type == "tool_use"]
 
+            # Ejecutamos PRIMERO todos los bloques que NO son
+            # escalar_a_asesor -- así, si el cliente dio un valor real
+            # (presupuesto o teléfono) en este mismo mensaje, lead.datos_viaje
+            # ya queda actualizado ANTES de evaluar si el escalamiento es
+            # válido.
+            resultados_por_bloque = {}
+            for block in tool_use_blocks:
+                if block.name != "escalar_a_asesor":
+                    resultados_por_bloque[block.id] = _ejecutar_tool(lead, block.name, block.input)
+
+            # Ahora sí, con lead.datos_viaje al día, evaluamos si el/los
+            # intento(s) de escalar son válidos.
+            requisitos_incompletos = not (presupuesto_listo() and telefono_listo())
             intenta_escalar = any(b.name == "escalar_a_asesor" for b in tool_use_blocks)
-            requisitos_incompletos = not (presupuesto_ok and telefono_ok)
 
             if intenta_escalar and requisitos_incompletos:
-                # Rechazo incondicional, usando el snapshot de TODO el run
-                # (no de esta vuelta). Descartamos TODO el texto de esta
-                # vuelta para nunca enviar un mensaje a medias -- Claude
-                # reintenta limpio en la vuelta siguiente, sin ningún
-                # intento de escalar de por medio.
                 faltantes = []
-                if not presupuesto_ok:
+                if not presupuesto_listo():
                     faltantes.append("el presupuesto")
-                if not telefono_ok:
+                if not telefono_listo():
                     faltantes.append("un número de WhatsApp alternativo (el cliente escribe con username)")
 
                 logger.warning(
@@ -475,6 +486,9 @@ def responder_mensaje(lead_id):
                     lead.nombre, ", ".join(faltantes),
                 )
 
+                # Descartamos TODO el texto de esta vuelta para nunca
+                # enviar un mensaje a medias -- Claude reintenta limpio en
+                # la vuelta siguiente.
                 tool_results = []
                 for block in tool_use_blocks:
                     if block.name == "escalar_a_asesor":
@@ -492,11 +506,10 @@ def responder_mensaje(lead_id):
                             }),
                         })
                     else:
-                        resultado = _ejecutar_tool(lead, block.name, block.input)
                         tool_results.append({
                             "type": "tool_result",
                             "tool_use_id": block.id,
-                            "content": json.dumps(resultado),
+                            "content": json.dumps(resultados_por_bloque[block.id]),
                         })
 
                 messages = messages + [
@@ -510,9 +523,11 @@ def responder_mensaje(lead_id):
 
             tool_results = []
             for block in tool_use_blocks:
-                resultado = _ejecutar_tool(lead, block.name, block.input)
                 if block.name == "escalar_a_asesor":
+                    resultado = _ejecutar_tool(lead, block.name, block.input)
                     escalado = True
+                else:
+                    resultado = resultados_por_bloque[block.id]
                 tool_results.append(
                     {"type": "tool_result", "tool_use_id": block.id, "content": json.dumps(resultado)}
                 )
@@ -528,11 +543,9 @@ def responder_mensaje(lead_id):
 
         d = lead.datos_viaje
         datos_completos = d.get("destino") and d.get("fecha_viaje") and d.get("num_personas")
-        presupuesto_listo = presupuesto_ok
-        telefono_listo = telefono_ok
 
         if not escalado and not forzado_ya and lead.estado == Lead.Estado.EN_CONVERSACION \
-                and datos_completos and presupuesto_listo and telefono_listo:
+                and datos_completos and presupuesto_listo() and telefono_listo():
             logger.warning(
                 "Claude no escaló con datos completos para lead %s -- forzando turno de escalamiento",
                 lead.nombre,
@@ -558,15 +571,7 @@ def responder_mensaje(lead_id):
             continue
 
         if not escalado and forzado_ya and lead.estado == Lead.Estado.EN_CONVERSACION \
-                and datos_completos and presupuesto_listo and telefono_listo:
-            # Ya forzamos una vez y Claude no cumplió (no llamó la
-            # herramienta, o inventó una respuesta rara en su lugar). En
-            # vez de confiar en un segundo intento, ejecutamos el
-            # escalamiento nosotros mismos en código y sobreescribimos
-            # cualquier texto que Claude haya generado -- así garantizamos
-            # que el cliente reciba la despedida correcta y que el lead
-            # SÍ quede escalado de verdad, sin depender de que el modelo
-            # obedezca.
+                and datos_completos and presupuesto_listo() and telefono_listo():
             logger.error(
                 "Lead %s: Claude no llamó a escalar_a_asesor tras ser "
                 "forzado -- ejecutando el escalamiento directamente en "
