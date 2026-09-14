@@ -557,6 +557,25 @@ def responder_mensaje(lead_id):
             ]
             continue
 
+        if not escalado and forzado_ya and lead.estado == Lead.Estado.EN_CONVERSACION \
+                and datos_completos and presupuesto_listo and telefono_listo:
+            # Ya forzamos una vez y Claude no cumplió (no llamó la
+            # herramienta, o inventó una respuesta rara en su lugar). En
+            # vez de confiar en un segundo intento, ejecutamos el
+            # escalamiento nosotros mismos en código y sobreescribimos
+            # cualquier texto que Claude haya generado -- así garantizamos
+            # que el cliente reciba la despedida correcta y que el lead
+            # SÍ quede escalado de verdad, sin depender de que el modelo
+            # obedezca.
+            logger.error(
+                "Lead %s: Claude no llamó a escalar_a_asesor tras ser "
+                "forzado -- ejecutando el escalamiento directamente en "
+                "código.", lead.nombre,
+            )
+            _ejecutar_tool(lead, "escalar_a_asesor", {"motivo": "forzado por sistema (Claude no cumplió)"})
+            escalado = True
+            respuesta_texto = "Un asesor de Lusso te contactará pronto para hablar de los detalles."
+
         break
     else:
         logger.warning("Tope de iteraciones de tool use alcanzado para lead %s", lead_id)
@@ -570,7 +589,6 @@ def responder_mensaje(lead_id):
 
     if escalado and lead.estado == Lead.Estado.EN_CONVERSACION:
         _post_escalamiento(lead)
-
 
 def _construir_historial(lead):
     """Convierte los últimos mensajes de la BD al formato de la API de Claude.
