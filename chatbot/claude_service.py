@@ -191,9 +191,11 @@ Si el cliente responde con un número: regístralo con registrar_datos_viaje
 en telefono_alternativo, y luego escala.
 
 Si el cliente responde algo como "a este mismo número", "por aquí" o 
-similar: aclárale "Por el momento no tengo acceso para verlo, ¿podrías 
-escribírmelo por aquí, por favor?" (no lo copies literal, adáptalo) -- 
-espera su respuesta al siguiente mensaje, sin escalar todavía.
+similar, en vez de dar un número: aclárale "Por el momento no tengo 
+acceso para verlo, ¿podrías escribírmelo por aquí, por favor?" (no lo 
+copies literal, adáptalo). Llama a registrar_datos_viaje con 
+telefono_aclarado=true en ese turno. NO escales todavía -- espera la 
+respuesta del cliente al mensaje siguiente.
 
 Si el cliente evade la pregunta una segunda vez o dice que no quiere 
 compartirlo: NO vuelvas a insistir -- escala de todas formas en ese turno.
@@ -264,6 +266,10 @@ TOOLS = [
                 "telefono_preguntado": {
                     "type": "boolean",
                     "description": "Poner en true la primera vez que le preguntas al cliente (con username, sin número visible) por un número alternativo, sin importar si responde o no. Nunca se pone en false.",
+                },
+                "telefono_aclarado": {
+                    "type": "boolean",
+                    "description": "Poner en true cuando le aclaras al cliente (por segunda vez) que no puedes ver su número directamente -- por ejemplo, cuando responde 'a este número' o similar. Nunca se pone en false.",
                 },
                 "notas": {"type": "string", "description": "Contexto útil: ocasión especial, preferencias, ciudad de origen, etc."},
             },
@@ -411,7 +417,7 @@ def responder_mensaje(lead_id):
     telefono_ok = bool(
         not es_username
         or d_inicial.get("telefono_alternativo")
-        or d_inicial.get("telefono_preguntado")
+        or d_inicial.get("telefono_aclarado")
     )
 
     escalado = False
