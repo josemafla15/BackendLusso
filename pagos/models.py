@@ -45,6 +45,9 @@ class Pago(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    numero_identificacion = models.TextField(blank=True, default="")
+    numero_reserva = models.TextField(blank=True, default="")
+
     class Meta:
         db_table = "pagos"
         ordering = ["-created_at"]

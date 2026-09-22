@@ -211,6 +211,7 @@ class PagoSerializer(serializers.ModelSerializer):
         fields = [
             "id", "lead", "lead_nombre", "cliente_nombre", "cliente_contacto",
             "destino", "descripcion", "monto", "metodo_pago", "token", "referencia",
+            "numero_identificacion", "numero_reserva",
             "estado", "wompi_transaction_id", "link_pago", "created_at", "updated_at",
         ]
         read_only_fields = [
