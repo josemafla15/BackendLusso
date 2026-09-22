@@ -81,14 +81,14 @@
     </div>
     {% endif %}
 
-    {% if h.precios and total_hoteles > 1 %}
+    {% comment %} {% if h.precios and total_hoteles > 1 %}
     <div class="h-precios">
       <h2 class="h-precios__titulo">Inversión</h2>
       {% for linea in h.precios %}
         <div class="h-precio">{{ linea }}</div>
       {% endfor %}
     </div>
-    {% endif %}
+    {% endif %} {% endcomment %}
   </div>
 
   <div class="h-fotos">

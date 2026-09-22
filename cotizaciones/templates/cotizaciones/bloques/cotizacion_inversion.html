@@ -5,26 +5,29 @@
 <!--
   BLOQUE: Página "Inversión" — Lusso Travel
 
-  ESTA PÁGINA SIEMPRE SE MUESTRA (a diferencia de antes, ya no
-  desaparece con 2+ hoteles).
-
   - 0 o 1 hotel: muestra cotizacion.inversion_lineas, texto libre
     escrito por el asesor, una línea debajo de otra.
-  - 2+ hoteles: muestra un mensaje fijo -- el precio real ya está en
-    la página de cada hotel (h.precios).
+  - 2 hoteles: muestra los 2, cada uno con su nombre y líneas de precio.
+  - 3+ hoteles: la página principal solo muestra los primeros 2 (para
+    no romper el layout con texto grande); el resto (3er hotel en
+    adelante) se manda a una SEGUNDA página, con el mismo encabezado
+    completo (headline, logo, eyebrow), agregada al final de este
+    mismo bloque.
 
   CONTEXTO ESPERADO:
     cotizacion.destino          -> str
-    cotizacion.hoteles.all      -> queryset -- se usa solo para contar
+    cotizacion.hoteles.all      -> queryset de CotizacionHotel
     cotizacion.inversion_lineas -> list[str]
 
   ASSETS ESTÁTICOS:
     logoLargoBlanco.png  -> logo crema (fondo oscuro)
     machaBlanca.png      -> decorativo
-    maleta.png           -> decorativo
+    maleta.png            -> decorativo
 -->
 
 {% with total_hoteles=cotizacion.hoteles.all|length %}
+
+<!-- ===== Página principal de Inversión ===== -->
 <section class="lusso-page lusso-page--inversion">
 
   <div class="i-eyebrow">{{ cotizacion.destino|upper }}</div>
@@ -34,7 +37,14 @@
 
   <div class="i-contenido">
     {% if total_hoteles > 1 %}
-      <div class="i-nota-total">Según el hotel de preferencia, consulte con su asesor</div>
+      {% for h in cotizacion.hoteles.all|slice:":2" %}
+        <div class="i-hotel-bloque">
+          <div class="i-hotel-nombre">{{ h.nombre_display }}</div>
+          {% for linea in h.precios %}
+            <div class="i-linea-hotel">{{ linea }}</div>
+          {% endfor %}
+        </div>
+      {% endfor %}
     {% else %}
       {% for linea in cotizacion.inversion_lineas %}
         <div class="i-linea-libre">{{ linea }}</div>
@@ -48,6 +58,35 @@
   <img class="i-maleta" src="{% static 'cotizaciones/assets/maleta.png' %}" alt="">
 
 </section>
+
+<!-- ===== Página adicional -- solo si hay 3+ hoteles ===== -->
+{% if total_hoteles > 2 %}
+<section class="lusso-page lusso-page--inversion">
+
+  <div class="i-eyebrow">{{ cotizacion.destino|upper }}</div>
+  <img class="i-logo" src="{% static 'cotizaciones/assets/logoLargoBlanco.png' %}" alt="Lusso Travel">
+
+  <h1 class="i-headline">Inversión</h1>
+
+  <div class="i-contenido">
+    {% for h in cotizacion.hoteles.all|slice:"2:" %}
+      <div class="i-hotel-bloque">
+        <div class="i-hotel-nombre">{{ h.nombre_display }}</div>
+        {% for linea in h.precios %}
+          <div class="i-linea-hotel">{{ linea }}</div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="i-footer">Contarás con acompañamiento del equipo de Lusso Travel cada que lo requieras durante tu viaje.</div>
+
+  <img class="i-macha" src="{% static 'cotizaciones/assets/machaBlanca.png' %}" alt="">
+  <img class="i-maleta" src="{% static 'cotizaciones/assets/maleta.png' %}" alt="">
+
+</section>
+{% endif %}
+
 {% endwith %}
 
 <style>
@@ -107,22 +146,30 @@
     width: 1400px;
   }
 
-  /* --- Líneas de texto libre (inversion_lineas) --- */
+  /* --- Líneas de texto libre (inversion_lineas, 0-1 hotel) --- */
   .i-linea-libre {
     font-weight: 700;
-    font-size: 40px;
+    font-size: 70px;
     color: var(--crema);
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
 
-  /* --- Mensaje fijo cuando hay 2+ hoteles --- */
-  .i-nota-total {
-    font-weight: 600;
-    font-size: 22px;
-    line-height: 1.4;
-    color: rgba(255,246,244,0.85);
-    max-width: 700px;
-  }
+/* --- Precio por hotel (2+ hoteles) --- */
+.i-hotel-bloque {
+  margin-bottom: 36px;
+}
+.i-hotel-nombre {
+  font-weight: 800;
+  font-size: 42px;
+  color: var(--crema);
+  margin-bottom: 10px;
+}
+.i-linea-hotel {
+  font-weight: 400;
+  font-size: 32px;
+  color: rgba(255,246,244,0.9);
+  margin-bottom: 5px;
+}
 
   .i-footer {
     position: absolute;
