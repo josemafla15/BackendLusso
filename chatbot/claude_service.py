@@ -88,18 +88,17 @@ Lusso publica promociones. Si el cliente llega diciendo que quiere una promo (ej
 - **Japón** (Cultura, Ciudad): tradición milenaria e innovación en armonía. Imperdibles: Monte Fuji, templos de Kioto, Tokio.
 
 ## Europa
-Lusso ofrece dos formas de conocer Europa:
-1. **Tour por Europa** (circuito multi-país, de 7 a 20+ días) -- recorre varias capitales y rincones del continente en un solo viaje. Ideal para quien quiere ver varios países.
-2. **Destinos individuales** (para quien prefiere enfocarse en un solo país):
-   - **Francia** -- París, Niza. El romance, el arte y la gastronomía.
-   - **España** -- Madrid, Barcelona. Historia, arte y energía única.
-   - **Italia** -- Roma, Venecia. Cuna del arte y la historia.
-   - **Portugal** -- Lisboa, Oporto. Encanto costero y tradición.
-   - **Reino Unido** -- Londres, Edimburgo. Historia real y modernidad.
-   - **Alemania** -- Berlín, Múnich. Historia, cerveza y arquitectura imponente.
-   - **Países Bajos** -- Ámsterdam. Canales, bicicletas y tulipanes.
-   - **Grecia** -- Atenas, Santorini. Cuna de la civilización occidental.
-   - **Finlandia** -- Helsinki, Rovaniemi. Naturaleza nórdica y auroras boreales.
+Cada línea de esta lista es un destino por sí solo. Si el cliente nombra uno (ej. "España"), ESE es su destino: regístralo y sigue. No le ofrezcas las otras opciones ni le preguntes si prefiere un tour, un circuito o varios países.
+- **Tour por Europa** (circuito multi-país, de 7 a 20+ días) -- recorre varias capitales y rincones del continente en un solo viaje. Ideal para quien quiere ver varios países.
+- **Francia** -- París, Niza. El romance, el arte y la gastronomía.
+- **España** -- Madrid, Barcelona. Historia, arte y energía única.
+- **Italia** -- Roma, Venecia. Cuna del arte y la historia.
+- **Portugal** -- Lisboa, Oporto. Encanto costero y tradición.
+- **Reino Unido** -- Londres, Edimburgo. Historia real y modernidad.
+- **Alemania** -- Berlín, Múnich. Historia, cerveza y arquitectura imponente.
+- **Países Bajos** -- Ámsterdam. Canales, bicicletas y tulipanes.
+- **Grecia** -- Atenas, Santorini. Cuna de la civilización occidental.
+- **Finlandia** -- Helsinki, Rovaniemi. Naturaleza nórdica y auroras boreales.
 
 Si el cliente menciona un país (europeo o no), ese país YA es el destino: regístralo de inmediato con registrar_datos_viaje y continúa con los datos que falten (fecha, personas, presupuesto). NO preguntes por ciudades específicas ni si prefiere un solo país o un circuito. Solo menciona ciudades o el Tour por Europa si el cliente pide recomendaciones o dice que no sabe qué ver.
 
@@ -290,12 +289,27 @@ TOOLS = [
     },
 ]
 
+class FalloAPI(Exception):
+    """La API de Anthropic no respondió tras los reintentos del SDK. La
+    tarea de Celery la captura y reintenta más tarde."""
+
+
 DESPEDIDA = "Un asesor de Lusso te contactará pronto para hablar de los detalles."
 MENSAJE_RESPALDO = "¡Dame un momentico! Ya te respondo 🙏"
 
 # Si el bot le dice al cliente que un asesor lo va a contactar, el código
 # garantiza que el escalamiento ocurra aunque Claude no llame la herramienta.
 PROMESA_ASESOR = re.compile(r"asesor.{0,40}(contactar|escribir|comunicar)", re.IGNORECASE)
+
+# Señales de que Claude "pensó en voz alta": el bot le habla AL cliente,
+# nunca habla DE "el cliente" ni de notas, herramientas o errores.
+PATRON_FUGA = re.compile(
+    r"\[|nota interna|sistema|herramienta|escalar_a_asesor|registrar_datos|\btool\b|"
+    r"instrucci[oó]n|\berror\b|me equivoqu|(mensaje|respuesta) anterior|"
+    r"\b(el|al) cliente\b",
+    re.IGNORECASE,
+)
+RESPUESTA_FIJA_CON_ASESOR = "¡Con gusto! Tu asesor te escribirá directamente para ayudarte con eso 😊"
 
 # ── Cada dato se pregunta UNA sola vez (lo controla el código) ──────────────
 # Orden en que se preguntan los datos una vez hay destino. El destino no
@@ -312,6 +326,14 @@ ETIQUETAS = {
     "presupuesto": "el presupuesto",
     CAMPO_TELEFONO: "su número de WhatsApp",
 }
+# Preguntas de reemplazo cuando hay que descartar el texto de Claude.
+PREGUNTA_FIJA = {
+    "destino": "¿Ya tienes algún destino en mente para tu viaje? 😊",
+    "fecha_viaje": "¿Para qué fecha te gustaría viajar?",
+    "num_personas": "¿Cuántas personas viajarían?",
+    "presupuesto": "¿Tienes un presupuesto en mente para el viaje?",
+    CAMPO_TELEFONO: "¿Me escribes tu número de WhatsApp para que el asesor te contacte?",
+}
 # Cómo reconocer, en el texto que el bot envió, qué dato preguntó.
 PATRON_PREGUNTA = {
     "fecha_viaje": re.compile(r"cu[aá]ndo|fecha|\bmes\b|[eé]poca|temporada", re.IGNORECASE),
@@ -320,7 +342,9 @@ PATRON_PREGUNTA = {
     CAMPO_TELEFONO: re.compile(r"n[uú]mero|whatsapp|celular|tel[eé]fono", re.IGNORECASE),
 }
 # Preguntas que NO son de datos (elegir destino/parque/categoría del catálogo).
-PATRON_PREGUNTA_CATALOGO = re.compile(r"cu[aá]l|parque|cat[aá]logo|destino|opci[oó]n|conocer", re.IGNORECASE)
+PATRON_PREGUNTA_CATALOGO = re.compile(
+    r"cu[aá]l|parque|cat[aá]logo|destino|opci[oó]n|conocer|prefier|tour|circuito|pa[ií]s|ciudad", re.IGNORECASE
+)
 
 # Únicos campos que Claude puede escribir en datos_viaje.
 CAMPOS_REGISTRABLES = {"destino", "fecha_viaje", "num_personas", "presupuesto", CAMPO_TELEFONO, "notas"}
@@ -551,11 +575,18 @@ def _log_uso_cache(lead_id, response):
     )
     logger.info("CACHE lead=%s: costo de esta llamada = $%.6f", lead_id, costo)
     return costo
-def responder_mensaje(lead_id):
+def responder_mensaje(lead_id, avisar_fallo=True):
+    """Responde al último mensaje del lead.
+
+    Si la API de Anthropic falla, lanza FalloAPI para que la tarea de Celery
+    reintente más tarde. `avisar_fallo` controla si antes se le manda al
+    cliente el mensaje de "dame un momentico" (solo en el primer intento).
+    """
     from .whatsapp import enviar_texto
 
     lead = Lead.objects.get(id=lead_id)
-    client = Anthropic(max_retries=4, timeout=30)
+    # Reintentos inmediatos (segundos). Los reintentos largos los hace Celery.
+    client = Anthropic(max_retries=2, timeout=30)
 
     historial = _construir_historial(lead)
     if not historial:
@@ -748,21 +779,44 @@ def responder_mensaje(lead_id):
     else:
         logger.warning("Tope de iteraciones de tool use alcanzado para lead %s", lead_id)
 
-    if not respuesta_texto:
+    if fallo_api and not escalado:
+        # No se guarda como mensaje del BOT: si quedara en el historial, el
+        # reintento vería un turno del asistente al final de la conversación.
+        if avisar_fallo:
+            enviar_texto(lead.telefono, MENSAJE_RESPALDO)
+            Mensaje.objects.create(
+                lead=lead, rol=Mensaje.Rol.SISTEMA,
+                contenido=f"La IA no respondió. Se envió al cliente: «{MENSAJE_RESPALDO}». Reintentando en unos minutos.",
+            )
+        raise FalloAPI(f"Anthropic no respondió para el lead {lead_id}")
+
+    if escalado and not respuesta_texto:
+        respuesta_texto = DESPEDIDA
+
+    # FILTRO: si Claude narró su razonamiento o mencionó algo interno, ese
+    # texto no se envía. Se reemplaza por un mensaje fijo según lo que toque.
+    if respuesta_texto and PATRON_FUGA.search(respuesta_texto):
+        logger.error("Lead %s: texto interno en la respuesta, se reemplaza: %r", lead.nombre, respuesta_texto)
+        d = lead.datos_viaje
         if escalado:
             respuesta_texto = DESPEDIDA
-        elif fallo_api:
-            respuesta_texto = MENSAJE_RESPALDO
+        elif not activo:
+            respuesta_texto = RESPUESTA_FIJA_CON_ASESOR
+        elif not d.get("destino") and not d.get("escalar_pendiente"):
+            respuesta_texto = PREGUNTA_FIJA["destino"]
+        else:
+            pendientes = _pendientes(d, es_username)
+            respuesta_texto = PREGUNTA_FIJA[pendientes[0]] if pendientes else DESPEDIDA
 
     # BANDERA: si el bot le prometió un asesor al cliente sin haber escalado,
     # la promesa se cumple en código.
-    if activo and not escalado and not fallo_api and PROMESA_ASESOR.search(respuesta_texto):
+    if activo and not escalado and PROMESA_ASESOR.search(respuesta_texto):
         logger.error("Lead %s: el bot prometió asesor sin escalar -- escalando en código", lead.nombre)
         _ejecutar_tool(lead, "escalar_a_asesor", {"motivo": "promesa de asesor sin llamar la herramienta"}, es_username)
         escalado = True
 
     # Anotamos qué dato acaba de preguntar el bot, para no repetirlo nunca.
-    if activo and not escalado and not fallo_api:
+    if activo and not escalado:
         _marcar_preguntas_hechas(lead, respuesta_texto, es_username)
 
     if not respuesta_texto:
