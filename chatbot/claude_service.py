@@ -255,7 +255,7 @@ TOOLS = [
             "properties": {
                 "destino": {
                     "type": "string",
-                    "description": "Destino de interés. Si el cliente pide una promo, regístrala tal cual con sus palabras (ej. 'Promo San Andrés').",
+                    "description": "Cualquier lugar que el cliente haya nombrado, TAL CUAL lo dijo y al nivel que lo dijo: país ('México'), departamento o región ('Nariño'), ciudad, isla o parque. También una promo ('Promo San Andrés'). No lo cambies por algo más específico ni esperes a que lo precise. Si el cliente no ha nombrado ningún lugar ni promo, deja este campo vacío.",
                 },
                 "fecha_viaje": {
                     "type": "string",
@@ -296,6 +296,7 @@ class FalloAPI(Exception):
 
 DESPEDIDA = "Un asesor de Lusso te contactará pronto para hablar de los detalles."
 MENSAJE_RESPALDO = "¡Dame un momentico! Ya te respondo 🙏"
+SALUDO = "¡Hola! 👋 Soy el asistente virtual de Lusso Travel."
 
 # Si el bot le dice al cliente que un asesor lo va a contactar, el código
 # garantiza que el escalamiento ocurra aunque Claude no llame la herramienta.
@@ -460,6 +461,31 @@ def _marcar_preguntas_hechas(lead, texto, es_username):
     logger.info("Lead %s: preguntas ya hechas -> %s", lead.nombre, hechas)
 
 
+def _asegurar_pregunta_correcta(lead, texto, es_username):
+    """Con destino ya registrado, la única pregunta válida es la del dato
+    que toca. Si Claude preguntó otra cosa (afinar el destino, ofrecer el
+    catálogo, etc.), se conserva lo que dijo antes de preguntar y la
+    pregunta se cambia por la fija. No depende del prompt."""
+    d = lead.datos_viaje
+    if not (d.get("destino") or d.get("escalar_pendiente")):
+        return texto
+    pendientes = _pendientes(d, es_username)
+    preguntas = " ".join(re.findall(r"[^.!?¿]*\?", texto or ""))
+    if not pendientes or not preguntas:
+        return texto
+    if any(PATRON_PREGUNTA[c].search(preguntas) for c in pendientes):
+        return texto
+
+    # Cortar desde donde empieza la primera pregunta.
+    corte = texto.find("¿")
+    if corte == -1:
+        fin = texto.find("?")
+        corte = max(texto.rfind(sep, 0, fin) for sep in (". ", "! ", "\n")) + 1
+    antes = texto[:corte].strip()
+    logger.warning("Lead %s: pregunta fuera de guion, se reemplaza: %r", lead.nombre, texto[corte:].strip())
+    return f"{antes} {PREGUNTA_FIJA[pendientes[0]]}".strip()
+
+
 def _limpiar_param(valor):
     """Meta rechaza parámetros de plantilla con saltos de línea, tabs o
     muchos espacios seguidos (error 132018)."""
@@ -594,6 +620,7 @@ def responder_mensaje(lead_id, avisar_fallo=True):
 
     es_username = not lead.telefono.isdigit()
     activo = lead.estado == Lead.Estado.EN_CONVERSACION
+    es_primer_mensaje = not lead.mensajes.filter(rol=Mensaje.Rol.BOT).exists()
 
     escalado = False
     respuesta_texto = ""
@@ -612,12 +639,25 @@ def responder_mensaje(lead_id, avisar_fallo=True):
         if vuelta:
             messages = _marcar_ultimo_bloque_cacheable(messages)
 
+        # Mientras no haya destino, el primer paso del turno es SIEMPRE
+        # registrar lo que el cliente dijo (aunque sea nada). Así "México" o
+        # "Nariño" quedan como destino antes de que Claude redacte, y no
+        # depende de que decida registrarlo.
+        d_actual = lead.datos_viaje
+        forzar_registro = (
+            vuelta == 0 and activo
+            and not d_actual.get("destino") and not d_actual.get("escalar_pendiente")
+        )
+        extra = {"tool_choice": {"type": "tool", "name": "registrar_datos_viaje"}} if forzar_registro else {}
+
         try:
             response = client.messages.create(
                 model=MODELO,
                 max_tokens=1024,
                 system=[
-                    {"type": "text", "text": _system_prompt()},
+                    # Marcador propio: el prompt se sirve de cache aunque cambie
+                    # tool_choice entre una llamada y otra.
+                    {"type": "text", "text": _system_prompt(), "cache_control": {"type": "ephemeral"}},
                     {"type": "text", "text": f"Estado actual de este lead: {lead.estado}."},
                     {
                         "type": "text",
@@ -631,6 +671,7 @@ def responder_mensaje(lead_id, avisar_fallo=True):
                 ],
                 tools=TOOLS,
                 messages=messages,
+                **extra,
             )
         except anthropic.APIError:
             logger.exception("Lead %s: fallo de la API de Anthropic", lead_id)
@@ -726,7 +767,14 @@ def responder_mensaje(lead_id, avisar_fallo=True):
             continue
 
         # stop_reason distinto de tool_use -> Claude ya "terminó" el turno
-        respuesta_texto = texto_turno or respuesta_texto
+        # Claude puede escribir parte del mensaje junto a la llamada a la
+        # herramienta (ej. el saludo) y el resto después. Se envía todo, no
+        # solo lo último. Si ambas partes traen pregunta, se queda la primera
+        # para no preguntar dos veces.
+        if not respuesta_texto:
+            respuesta_texto = texto_turno
+        elif texto_turno and texto_turno not in respuesta_texto and "?" not in respuesta_texto:
+            respuesta_texto = f"{respuesta_texto}\n\n{texto_turno}"
 
         d = lead.datos_viaje
         nada_por_preguntar = (
@@ -808,6 +856,10 @@ def responder_mensaje(lead_id, avisar_fallo=True):
             pendientes = _pendientes(d, es_username)
             respuesta_texto = PREGUNTA_FIJA[pendientes[0]] if pendientes else DESPEDIDA
 
+    # PREGUNTA: con destino registrado, solo se pregunta el dato que toca.
+    if activo and not escalado and respuesta_texto:
+        respuesta_texto = _asegurar_pregunta_correcta(lead, respuesta_texto, es_username)
+
     # BANDERA: si el bot le prometió un asesor al cliente sin haber escalado,
     # la promesa se cumple en código.
     if activo and not escalado and PROMESA_ASESOR.search(respuesta_texto):
@@ -818,6 +870,12 @@ def responder_mensaje(lead_id, avisar_fallo=True):
     # Anotamos qué dato acaba de preguntar el bot, para no repetirlo nunca.
     if activo and not escalado:
         _marcar_preguntas_hechas(lead, respuesta_texto, es_username)
+
+    # SALUDO: el primer mensaje del bot siempre se presenta, lo escriba
+    # Claude o no.
+    if respuesta_texto and es_primer_mensaje and "lusso" not in respuesta_texto.lower():
+        sin_hola = re.sub(r"^[\s¡]*(hola|buen[oa]s( d[ií]as| tardes| noches)?)[\s,.!👋😊]*", "", respuesta_texto, flags=re.IGNORECASE)
+        respuesta_texto = f"{SALUDO}\n\n{sin_hola or respuesta_texto}"
 
     if not respuesta_texto:
         logger.warning("Respuesta vacía de Claude para lead %s — no se envía nada", lead_id)
