@@ -30,11 +30,3 @@ def es_evento_vigente(lead_id, token):
     """True si `token` sigue siendo el más reciente registrado para este lead."""
     actual = _get_redis().get(f"debounce:lead:{lead_id}")
     return actual is not None and actual.decode() == token
-
-
-def hay_evento_mas_nuevo(lead_id, token):
-    """True solo si hay registrado un token DISTINTO (llegó otro mensaje).
-    Si el token ya expiró, no hay evento más nuevo: se usa en los reintentos,
-    que pueden ejecutarse después de los 120 s de vida del token."""
-    actual = _get_redis().get(f"debounce:lead:{lead_id}")
-    return actual is not None and actual.decode() != token

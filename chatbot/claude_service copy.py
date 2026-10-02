@@ -1,10 +1,8 @@
 import hashlib
 import json
 import logging
-import re
 from datetime import date
 
-import anthropic
 from anthropic import Anthropic
 from django.utils import timezone
 
@@ -62,13 +60,10 @@ Si en su primera respuesta (o en cualquier momento) menciona un destino específ
 Si el destino no está en el catálogo (por ejemplo, si menciona un país o ciudad que no aparece en la lista de arriba), trátalo exactamente igual que cualquier destino conocido: regístralo con entusiasmo normal y sigue el flujo de siempre. NUNCA digas frases como "lamentablemente no está en nuestro catálogo", "no manejamos ese destino actualmente", ni nada que suene a disculpa o advertencia -- el cliente no debe notar ninguna diferencia entre pedir Cartagena o pedir cualquier otro lugar del mundo.
 
 Ejemplo de qué SÍ decir (no lo copies literal, adáptalo):
-"¡Tailandia es un destino hermoso! ¿Cuándo te gustaría viajar?"
+"¡Tailandia es un destino hermoso! ¿Cuándo te gustaría viajar y cuántas personas irían?"
 
 Ejemplo de qué NUNCA decir:
 "Lamentablemente Tailandia no está en nuestro catálogo, pero podemos organizarlo de todas formas..."
-
-# Promociones
-Lusso publica promociones. Si el cliente llega diciendo que quiere una promo (ej. "quiero la promo de San Andrés", "vi la promo de fin de año", "me interesa la promo"), acéptala tal cual como destino: regístrala con registrar_datos_viaje usando las palabras del cliente (ej. destino="Promo San Andrés"; si no dice cuál, destino="Promo") y continúa de inmediato con el siguiente dato. NO preguntes cuál promo es ni pidas más detalles sobre ella, y NO inventes qué incluye, sus fechas ni sus condiciones: todo eso lo confirma el asesor.
 
 # Catálogo de destinos de Lusso Travel
 
@@ -136,16 +131,18 @@ Los paquetes generalmente incluyen vuelos, alojamiento y experiencias -- el deta
 
 # Tu objetivo
 1. Resolver dudas sobre destinos, servicios y cómo funciona viajar con Lusso, usando el catálogo de arriba (puedes mencionar imperdibles específicos para dar contexto real, sin inventar datos que no estén aquí).
-2. Conocer de forma natural SOLO estos 4 datos: destino de interés, fecha
-del viaje (SIEMPRE en las propias palabras del cliente, ej. "mediados de
-diciembre", "la primera semana de enero" -- NUNCA la conviertas a una
-fecha exacta tipo YYYY-MM-DD ni inventes un rango de días específico),
-número de viajeros y presupuesto. Cada dato se pregunta UNA SOLA VEZ (ver
-la sección "Cada dato se pregunta UNA sola vez").
-Pregunta de a poco, tejido en la conversación -- máximo una pregunta por
-mensaje. NUNCA interrogues ni pidas todo de golpe. Si el cliente menciona
-VARIOS datos juntos en un mismo mensaje (ej. "en diciembre y somos 4"),
-regístralos TODOS con registrar_datos_viaje en ese mismo turno -- no te
+2. Conocer de forma natural SOLO estos 4 datos: destino de interés, fecha 
+del viaje (SIEMPRE en las propias palabras del cliente, ej. "mediados de 
+diciembre", "la primera semana de enero" -- NUNCA la conviertas a una 
+fecha exacta tipo YYYY-MM-DD ni inventes un rango de días específico), 
+número de viajeros y presupuesto (le preguntas UNA VEZ, justo cuando ya 
+tengas los otros 3 datos completos; si no lo menciona en esa única 
+pregunta, nunca vuelvas a insistir). 
+Pregunta por lo que falte de a poco, tejido en la conversación -- máximo 
+una pregunta por mensaje. NUNCA interrogues ni pidas todo de golpe. NUNCA 
+vuelvas a preguntar por un dato ya respondido. Si el cliente menciona 
+VARIOS datos juntos en un mismo mensaje (ej. "en diciembre y somos 4"), 
+regístralos TODOS con registrar_datos_viaje en ese mismo turno -- no te 
 quedes solo con uno de los datos mencionados.
 3. Registrar cada dato nuevo con la herramienta registrar_datos_viaje, incluyendo TODOS los datos que el cliente haya mencionado en su último mensaje, aunque vengan varios juntos en la misma frase.
 4. Escalar al asesor humano con escalar_a_asesor cuando corresponda.
@@ -153,16 +150,16 @@ quedes solo con uno de los datos mencionados.
 # REGLAS INNEGOCIABLES
 - SIEMPRE trata de TÚ al cliente, con conjugación estándar (tienes, quieres, puedes). NUNCA voseo ("tenés", "querés", "podés", "sos") ni "usted", en ningún mensaje, bajo ninguna circunstancia.
 - NUNCA preguntes de qué ciudad viaja el cliente, ni su ciudad de origen, ni desde dónde escribe. Ese dato NO es parte de la información que necesitas recolectar -- si el cliente lo menciona espontáneamente, puedes registrarlo en notas, pero jamás lo preguntes tú.
-- Los únicos 4 datos que debes intentar conocer son: destino, fecha del
-viaje (en las palabras exactas del cliente, sin convertir a fecha exacta
-ni inventar rangos), número de personas y presupuesto. Cada uno se
-pregunta UNA sola vez: si el cliente no lo responde, nunca vuelvas a
-insistir.
+- Los únicos 4 datos que debes intentar conocer son: destino, fecha del 
+viaje (en las palabras exactas del cliente, sin convertir a fecha exacta 
+ni inventar rangos), número de personas, y presupuesto (se lo preguntas 
+una única vez, apenas tengas destino + fecha + personas completos; si no 
+lo menciona en esa pregunta, nunca vuelvas a insistir).
 - JAMÁS des precios, ni aproximados, ni rangos, ni "desde". Los precios 
 solo los da el asesor. Si preguntan precio: explica que un asesor 
 prepara la información necesaria y escala.
 - NUNCA uses la frase "cotización a tu medida", "a tu medida", ni variantes similares en ningún mensaje.
-- No inventes información que no esté en el catálogo de arriba: si no sabes algo específico (hoteles exactos, horarios de vuelos, requisitos de visa), di que el asesor lo confirma en la cotización. Lo mismo aplica a cualquier pregunta que no puedas responder con el catálogo: NO intentes responderla, dile en una frase corta que el asesor se lo confirma, guarda la pregunta en notas con registrar_datos_viaje (sin borrar las notas anteriores) y continúa con el dato que toque.
+- No inventes información que no esté en el catálogo de arriba: si no sabes algo específico (hoteles exactos, horarios de vuelos, requisitos de visa), di que el asesor lo confirma en la cotización.
 - No prometas disponibilidad ni fechas garantizadas.
 - Si el cliente ya está en proceso con un asesor (estado calificado o cotizado), responde dudas generales con gusto, pero para temas de su cotización o negociación indícale que su asesor le responde directamente.
 - NUNCA vuelvas a preguntar por destino, fechas, número de personas o presupuesto si el cliente ya los mencionó en cualquier punto anterior de la conversación, aunque haya sido de pasada.
@@ -177,46 +174,65 @@ Tu rol cambia: eres un asistente secundario. Un asesor humano ya está a cargo d
 
 Si el cliente pide cambiar o corregir algún dato (destino, fechas, personas) mientras ya está calificado/cotizado, puedes registrar el cambio con registrar_datos_viaje con toda naturalidad -- pero NUNCA vuelvas a decir que "un asesor te escribirá pronto", ni "te contactará pronto", ni menciones "cotización a tu medida" en esa respuesta, porque el asesor ya fue notificado antes y no hace falta repetir esa frase cada vez. En su lugar, simplemente confirma el cambio con calidez, por ejemplo: "¡Listo, actualicé tu viaje a Japón! Tu asesor ya tiene esta información" -- sin repetir el anuncio de escalamiento.
 
-# Cada dato se pregunta UNA sola vez
-Al final del último mensaje del cliente verás una nota interna del sistema (el cliente NO la ve) con los datos ya registrados y la lista de datos que todavía puedes preguntar, en orden. Esa nota manda sobre cualquier otra indicación:
-- Primero registra lo que el cliente haya dicho en su último mensaje. Luego pregunta SOLO por el primer dato de esa lista que siga sin respuesta, y solo uno por mensaje.
-- Un dato que NO aparece en la lista ya se tiene o ya se preguntó: NUNCA vuelvas a preguntarlo ni lo reformules de otra manera, aunque el cliente haya dicho "no sé", haya cambiado de tema o no haya respondido.
-- Si el cliente responde "no sé" o evade la pregunta, no insistas ni comentes que falta ese dato: sigue con el siguiente de la lista.
-- Mientras no haya un destino (o una promo) registrado, NO preguntes por fecha, personas ni presupuesto: ayúdale a elegir con el catálogo, sin presionar. Si solo está averiguando, responde sus dudas con gusto.
-- Cuando la nota diga que ya no queda nada por preguntar, escala en ese mismo turno.
-- Nunca menciones la nota ni su contenido al cliente.
+# Antes de escalar: pregunta por presupuesto UNA VEZ
+En cuanto tengas destino + fecha del viaje + número de personas (los 3 
+datos mínimos) y el cliente no te haya mencionado el presupuesto 
+todavía, NO escales en ese mismo turno. En su lugar:
+1. Reconoce con calidez y entusiasmo lo que el cliente acaba de 
+compartir (ej. "¡Genial, Cartagena a inicios de octubre con ustedes 4! 
+Se ve un viaje espectacular." -- no lo copies literal, adáptalo al 
+destino y contexto).
+2. En esa misma respuesta, pregúntale UNA sola vez si tiene un 
+presupuesto en mente para el viaje.
+3. Llama a registrar_datos_viaje con presupuesto_preguntado=true en ese 
+turno.
+4. NO llames a escalar_a_asesor todavía -- espera la respuesta del 
+cliente al mensaje siguiente.
+
+Esta pregunta se hace UNA SOLA VEZ por conversación. En el mensaje 
+siguiente del cliente:
+- Si dio un monto o rango: regístralo con registrar_datos_viaje y luego 
+escala.
+- Si evadió la pregunta, dijo "no sé", cambió de tema, o simplemente no 
+lo mencionó: NO vuelvas a insistir, escala de todas formas en ese turno.
 
 # Si el cliente escribe con nombre de usuario (sin número visible)
-El sistema te indica más abajo si este cliente escribe con un nombre
-de usuario de WhatsApp (no tiene número visible para ti). SOLO si aplica,
-la nota interna incluirá "su número de WhatsApp" en la lista de datos por
-preguntar:
-- La primera vez, pídelo con calidez: "¿Por favor escríbeme tu número de
-WhatsApp para que el asesor te escriba directamente?" (no lo copies
+El sistema te indica más abajo si este cliente escribe con un nombre 
+de usuario de WhatsApp (no tiene número visible para ti). SOLO si aplica:
+
+Justo antes de escalar (cuando ya tengas destino + fecha + personas + 
+presupuesto resuelto), si todavía no le has preguntado por un número 
+alternativo, pregúntaselo UNA vez, en un turno separado de la despedida:
+1. Pregunta con calidez: "¡Genial! ¿Por favor escríbeme tu número de 
+WhatsApp para que el asesor te escriba directamente?" (no lo copies 
 literal, adáptalo).
-- Si el cliente responde con un número: regístralo con
-registrar_datos_viaje en telefono_alternativo.
-- Si la nota indica que es la segunda y última vez (el cliente respondió
-"a este mismo número", "por aquí" o no lo dio): aclárale "Por el momento
-no tengo acceso para verlo, ¿podrías escribírmelo por aquí, por favor?"
-(no lo copies literal, adáptalo).
-- Si tampoco lo comparte, NO vuelvas a insistir.
+2. Llama a registrar_datos_viaje con telefono_preguntado=true en ese turno.
+3. NO llames a escalar_a_asesor todavía -- espera la respuesta del 
+cliente al mensaje siguiente.
+
+Si el cliente responde con un número: regístralo con registrar_datos_viaje 
+en telefono_alternativo, y luego escala.
+
+Si el cliente responde algo como "a este mismo número", "por aquí" o 
+similar, en vez de dar un número: aclárale "Por el momento no tengo 
+acceso para verlo, ¿podrías escribírmelo por aquí, por favor?" (no lo 
+copies literal, adáptalo). Llama a registrar_datos_viaje con 
+telefono_aclarado=true en ese turno. NO escales todavía -- espera la 
+respuesta del cliente al mensaje siguiente.
+
+Si el cliente evade la pregunta una segunda vez o dice que no quiere 
+compartirlo: NO vuelvas a insistir -- escala de todas formas en ese turno.
 
 # Cuándo escalar (llama a escalar_a_asesor)
-- La nota interna indica que ya no queda nada por preguntar: escala con
-tipo "datos_completos", aunque falten datos que el cliente no supo o no
-quiso responder.
-- El cliente pregunta precios en cualquier forma: tipo "pregunta_precio".
-- El cliente pide hablar con una persona: tipo "pide_humano".
-- El cliente quiere reservar o muestra clara intención de compra: tipo
-"intencion_compra".
+- Ya conoces destino + fecha del viaje + número de personas, Y (ya le 
+preguntaste una vez por el presupuesto, o el cliente ya lo mencionó 
+espontáneamente antes de que se lo preguntaras), o
+- El cliente pregunta precios en cualquier forma, o
+- El cliente pide hablar con una persona, quiere reservar, o muestra 
+clara intención de compra.
 
-En estos tres últimos casos escala de inmediato, sin hacer antes las
-preguntas pendientes.
-
-Si la herramienta te responde que antes debes preguntar algo, haz esa
-pregunta con naturalidad en un mensaje corto y NO menciones al asesor en
-ese mensaje.
+En estos dos últimos casos puedes escalar de inmediato, sin necesidad de 
+haber preguntado antes por el presupuesto.
 
 Al escalar, tu respuesta debe tener dos partes seguidas en el mismo 
 mensaje:
@@ -246,7 +262,7 @@ IMPORTANTE: escalar significa LLAMAR a la herramienta escalar_a_asesor. Nunca an
 
 CHEQUEO OBLIGATORIO antes de responder: si tu respuesta menciona que un asesor va a contactar al cliente, DEBES haber llamado escalar_a_asesor en ese mismo turno -- sin excepción. Si no llamaste la herramienta, no puedes mencionar al asesor en tu respuesta bajo ninguna circunstancia.
 
-Además, antes de escalar, registra con registrar_datos_viaje TODOS los datos nuevos que el cliente mencionó en su último mensaje, incluso si vienen varios juntos en la misma frase (ej. "diciembre y somos 4" contiene fecha Y número de personas -- registra ambos, no solo uno)."""
+Además, antes de escalar, verifica que realmente tengas los 3 datos mínimos guardados (destino, fecha, número de personas) llamando primero a registrar_datos_viaje con TODOS los datos nuevos que el cliente mencionó en su último mensaje, incluso si vienen varios juntos en la misma frase (ej. "diciembre y somos 4" contiene fecha Y número de personas -- registra ambos, no solo uno)."""
 TOOLS = [
     {
         "name": "registrar_datos_viaje",
@@ -254,195 +270,45 @@ TOOLS = [
         "input_schema": {
             "type": "object",
             "properties": {
-                "destino": {
-                    "type": "string",
-                    "description": "Destino de interés. Si el cliente pide una promo, regístrala tal cual con sus palabras (ej. 'Promo San Andrés').",
-                },
+                "destino": {"type": "string", "description": "Destino de interés"},
                 "fecha_viaje": {
                     "type": "string",
                     "description": "Fecha del viaje TAL COMO el cliente la mencionó, en sus propias palabras (ej. 'mediados de diciembre', 'la primera semana de enero', 'del 10 al 15 de marzo', 'en 2 meses'). NO conviertas a fecha exacta ni inventes un rango de días -- copia la expresión del cliente casi literal, solo limpiándola un poco si hace falta.",
                 },
                 "num_personas": {"type": "integer", "description": "Número de viajeros"},
                 "presupuesto": {"type": "string", "description": "Presupuesto mencionado, en COP"},
+                "presupuesto_preguntado": {
+                    "type": "boolean",
+                    "description": "Poner en true la primera vez que le preguntas al cliente por su presupuesto, sin importar si responde o no. Nunca se pone en false.",
+                },
                 "telefono_alternativo": {
                     "type": "string",
                     "description": "Número de WhatsApp alternativo que el cliente compartió, SOLO relevante para clientes que escriben con un nombre de usuario (sin número visible). Guárdalo tal como lo escribió el cliente.",
                 },
-                "notas": {"type": "string", "description": "Contexto útil: ocasión especial, preferencias, ciudad de origen, preguntas del cliente que debe resolver el asesor, etc."},
+                "telefono_preguntado": {
+                    "type": "boolean",
+                    "description": "Poner en true la primera vez que le preguntas al cliente (con username, sin número visible) por un número alternativo, sin importar si responde o no. Nunca se pone en false.",
+                },
+                "telefono_aclarado": {
+                    "type": "boolean",
+                    "description": "Poner en true cuando le aclaras al cliente (por segunda vez) que no puedes ver su número directamente -- por ejemplo, cuando responde 'a este número' o similar. Nunca se pone en false.",
+                },
+                "notas": {"type": "string", "description": "Contexto útil: ocasión especial, preferencias, ciudad de origen, etc."},
             },
         },
     },
     {
         "name": "escalar_a_asesor",
-        "description": "Escala la conversación a un asesor humano. Úsala cuando la nota interna indique que ya no queda nada por preguntar, cuando pregunten precio, cuando pidan hablar con una persona o cuando quieran reservar.",
+        "description": "Escala la conversación a un asesor humano. Úsala cuando tengas los datos mínimos (destino, fecha_viaje, personas), cuando pregunten precio, o cuando pidan hablar con una persona.",
         "input_schema": {
             "type": "object",
             "properties": {
                 "motivo": {"type": "string", "description": "Motivo del escalamiento en pocas palabras"},
-                "tipo": {
-                    "type": "string",
-                    "enum": ["datos_completos", "pregunta_precio", "pide_humano", "intencion_compra"],
-                    "description": "Razón principal del escalamiento. datos_completos: ya no queda nada por preguntar. Los otros tres escalan de inmediato, sin hacer las preguntas pendientes.",
-                },
             },
-            "required": ["motivo", "tipo"],
+            "required": ["motivo"],
         },
     },
 ]
-
-DESPEDIDA = "Un asesor de Lusso te contactará pronto para hablar de los detalles."
-MENSAJE_RESPALDO = "¡Dame un momentico! Ya te respondo 🙏"
-
-# Si el bot le dice al cliente que un asesor lo va a contactar, el código
-# garantiza que el escalamiento ocurra aunque Claude no llame la herramienta.
-PROMESA_ASESOR = re.compile(r"asesor.{0,40}(contactar|escribir|comunicar)", re.IGNORECASE)
-
-# ── Cada dato se pregunta UNA sola vez (lo controla el código) ──────────────
-# Orden en que se preguntan los datos una vez hay destino. El destino no
-# tiene tope: sin destino el bot ofrece el catálogo y no avanza.
-ORDEN_PREGUNTAS = ["fecha_viaje", "num_personas", "presupuesto"]
-CAMPO_TELEFONO = "telefono_alternativo"  # solo clientes con username
-# El teléfono admite un segundo intento (la aclaración "no puedo ver tu
-# número"), porque sin él el asesor no puede contactar al cliente.
-MAX_INTENTOS = {CAMPO_TELEFONO: 2}
-ETIQUETAS = {
-    "destino": "el destino",
-    "fecha_viaje": "la fecha del viaje",
-    "num_personas": "el número de personas",
-    "presupuesto": "el presupuesto",
-    CAMPO_TELEFONO: "su número de WhatsApp",
-}
-# Cómo reconocer, en el texto que el bot envió, qué dato preguntó.
-PATRON_PREGUNTA = {
-    "fecha_viaje": re.compile(r"cu[aá]ndo|fecha|\bmes\b|[eé]poca|temporada", re.IGNORECASE),
-    "num_personas": re.compile(r"personas|viajer|acompa[ñn]|qui[eé]n|cu[aá]nt[oa]s (van|ir|son|ser|viaj)", re.IGNORECASE),
-    "presupuesto": re.compile(r"presupuesto|invertir|gastar", re.IGNORECASE),
-    CAMPO_TELEFONO: re.compile(r"n[uú]mero|whatsapp|celular|tel[eé]fono", re.IGNORECASE),
-}
-# Preguntas que NO son de datos (elegir destino/parque/categoría del catálogo).
-PATRON_PREGUNTA_CATALOGO = re.compile(r"cu[aá]l|parque|cat[aá]logo|destino|opci[oó]n|conocer", re.IGNORECASE)
-
-# Únicos campos que Claude puede escribir en datos_viaje.
-CAMPOS_REGISTRABLES = {"destino", "fecha_viaje", "num_personas", "presupuesto", CAMPO_TELEFONO, "notas"}
-
-
-def _hechas(d, campo):
-    """Cuántas veces se le ha preguntado ya este dato al cliente."""
-    n = (d.get("preguntas_hechas") or {}).get(campo, 0)
-    # Compatibilidad con leads creados con las banderas anteriores.
-    if campo == "presupuesto" and d.get("presupuesto_preguntado"):
-        n = max(n, 1)
-    if campo == CAMPO_TELEFONO:
-        if d.get("telefono_aclarado"):
-            n = max(n, 2)
-        elif d.get("telefono_preguntado"):
-            n = max(n, 1)
-    return n
-
-
-def _pendientes(d, es_username):
-    """Datos que todavía se pueden preguntar, en orden: los que no tienen
-    valor y aún no agotaron sus intentos."""
-    if d.get("escalar_pendiente"):
-        # El cliente ya pidió asesor/precio: solo falta su número (username).
-        pasos = [CAMPO_TELEFONO] if es_username else []
-    else:
-        pasos = ORDEN_PREGUNTAS + ([CAMPO_TELEFONO] if es_username else [])
-    return [c for c in pasos if not d.get(c) and _hechas(d, c) < MAX_INTENTOS.get(c, 1)]
-
-
-def _datos_publicos(d):
-    return {k: d[k] for k in ("destino", "fecha_viaje", "num_personas", "presupuesto", CAMPO_TELEFONO, "notas") if d.get(k)}
-
-
-def _etiqueta(d, campo):
-    if campo == CAMPO_TELEFONO and _hechas(d, campo) >= 1:
-        return "su número de WhatsApp (segunda y última vez: aclárale que no puedes ver su número y pídele que lo escriba)"
-    return ETIQUETAS[campo]
-
-
-def _nota_interna(lead, es_username):
-    """Estado real del lead, para que Claude lo VEA en vez de deducirlo de
-    la conversación. Va al final del último mensaje del cliente."""
-    d = lead.datos_viaje
-    lineas = [
-        "[nota interna del sistema -- el cliente NO la ve; nunca la menciones]",
-        f"Datos ya registrados: {json.dumps(_datos_publicos(d), ensure_ascii=False)}",
-    ]
-    if lead.estado != Lead.Estado.EN_CONVERSACION:
-        return "\n".join(lineas)
-
-    pendientes = _pendientes(d, es_username)
-    if not d.get("destino") and not d.get("escalar_pendiente"):
-        lineas.append(
-            "Aún no hay destino. Si el cliente menciona un destino o una promo en "
-            "este mensaje, regístralo y pregunta por la fecha del viaje. Si no, "
-            "ayúdale a elegir con el catálogo. NO preguntes fecha, personas ni "
-            "presupuesto mientras no haya destino."
-        )
-    elif pendientes:
-        lineas.append(
-            "Datos que aún puedes preguntar, en este orden: "
-            + "; ".join(_etiqueta(d, c) for c in pendientes) + ". "
-            "Primero registra lo que el cliente haya dicho en este mensaje. "
-            "Luego termina tu respuesta preguntando SOLO por el primero de esa "
-            "lista que siga sin respuesta. Cualquier dato que no esté en la lista "
-            "ya se tiene o ya se preguntó: NO vuelvas a preguntarlo. Si tras "
-            "registrar ya no queda ninguno, escala con tipo datos_completos."
-        )
-    else:
-        lineas.append(
-            "Ya no queda nada por preguntar. Registra lo que el cliente haya "
-            "dicho en este mensaje y llama a escalar_a_asesor con tipo "
-            "datos_completos en este mismo turno. No hagas más preguntas."
-        )
-    return "\n".join(lineas)
-
-
-def _faltantes_para_escalar(d, es_username, urgente):
-    """Qué falta preguntar antes de aceptar un escalamiento. Los
-    escalamientos urgentes (precio, pide persona, quiere reservar) solo
-    esperan el número del cliente con username."""
-    pendientes = _pendientes(d, es_username)
-    if urgente:
-        return [c for c in pendientes if c == CAMPO_TELEFONO]
-    sin_destino = not d.get("destino") and not d.get("escalar_pendiente")
-    return (["destino"] if sin_destino else []) + pendientes
-
-
-def _marcar_preguntas_hechas(lead, texto, es_username):
-    """Tras enviar la respuesta, anota qué dato(s) preguntó el bot para no
-    volver a preguntarlos nunca. No depende de que Claude lleve la cuenta."""
-    d = lead.datos_viaje
-    if not (d.get("destino") or d.get("escalar_pendiente")):
-        return
-    pendientes = _pendientes(d, es_username)
-    preguntas = " ".join(re.findall(r"[^.!?¿]*\?", texto or ""))
-    if not pendientes or not preguntas:
-        return
-
-    preguntados = [c for c in pendientes if PATRON_PREGUNTA[c].search(preguntas)]
-    if not preguntados and not PATRON_PREGUNTA_CATALOGO.search(preguntas):
-        # Hizo una pregunta que no reconocemos: asumimos que fue la que tocaba.
-        preguntados = [pendientes[0]]
-    if not preguntados:
-        return
-
-    hechas = dict(d.get("preguntas_hechas") or {})
-    for campo in preguntados:
-        hechas[campo] = _hechas(d, campo) + 1
-    lead.datos_viaje = {**d, "preguntas_hechas": hechas}
-    lead.save(update_fields=["datos_viaje", "updated_at"])
-    logger.info("Lead %s: preguntas ya hechas -> %s", lead.nombre, hechas)
-
-
-def _limpiar_param(valor):
-    """Meta rechaza parámetros de plantilla con saltos de línea, tabs o
-    muchos espacios seguidos (error 132018)."""
-    texto = re.sub(r"[\n\t\r]+", " ", str(valor))
-    texto = re.sub(r" {2,}", " ", texto).strip()
-    return texto[:1000] or "No especifica"
-
 
 def _system_prompt():
     """System prompt con la fecha de hoy inyectada (cambia una vez al día,
@@ -452,21 +318,17 @@ def _system_prompt():
 
 def _marcar_ultimo_bloque_cacheable(messages):
     """
-    Deja UN solo cache_control en los mensajes: en el último bloque del
-    último mensaje. Antes se acumulaba uno por vuelta del bucle y a la 5ª
-    la API devolvía 400 (máximo 4 marcadores). Con uno solo el cache sigue
-    funcionando: la API busca coincidencias de prefijo hacia atrás.
+    NUEVO (fix de caching): le agrega cache_control al último bloque de
+    contenido del último mensaje, para que Anthropic cachee TODO el
+    prefijo (system + tools + historial acumulado hasta ese punto),
+    no solo el system prompt.
+
+    Sin esto: cada turno paga precio completo por el historial creciente.
+    Con esto: el historial se sirve como cache_read (10% del precio) en
+    cada turno siguiente, dentro de la ventana de 5 minutos.
     """
     if not messages:
         return messages
-
-    # Quitar marcadores previos (solo dicts; los bloques del SDK no los tienen)
-    for msg in messages:
-        if isinstance(msg["content"], list):
-            msg["content"] = [
-                {k: v for k, v in b.items() if k != "cache_control"} if isinstance(b, dict) else b
-                for b in msg["content"]
-            ]
 
     ultimo = messages[-1]
     contenido = ultimo["content"]
@@ -476,6 +338,7 @@ def _marcar_ultimo_bloque_cacheable(messages):
             {"type": "text", "text": contenido, "cache_control": {"type": "ephemeral"}}
         ]
     else:
+        # ya es una lista de bloques (ej. tool_result) -> marcar el último bloque
         contenido[-1] = {**contenido[-1], "cache_control": {"type": "ephemeral"}}
 
     return messages
@@ -555,61 +418,63 @@ def responder_mensaje(lead_id):
     from .whatsapp import enviar_texto
 
     lead = Lead.objects.get(id=lead_id)
-    client = Anthropic(max_retries=4, timeout=30)
+    client = Anthropic()
 
     historial = _construir_historial(lead)
     if not historial:
         return
 
     es_username = not lead.telefono.isdigit()
-    activo = lead.estado == Lead.Estado.EN_CONVERSACION
+
+    # Estos DOS flags se congelan al inicio del mensaje -- representan
+    # "ya se había preguntado/aclarado ANTES de este mensaje". Sirven para
+    # evitar que preguntar y escalar se mezclen en el mismo mensaje.
+    d_inicial = lead.datos_viaje
+    presupuesto_preguntado_antes = bool(d_inicial.get("presupuesto_preguntado"))
+    telefono_aclarado_antes = bool(d_inicial.get("telefono_aclarado"))
+
+    def presupuesto_listo():
+        # El VALOR real se revisa en VIVO (puede haberse dado en este
+        # mismo mensaje) -- solo la bandera de "ya se preguntó" usa el
+        # snapshot congelado.
+        return bool(lead.datos_viaje.get("presupuesto")) or presupuesto_preguntado_antes
+
+    def telefono_listo():
+        return (
+            not es_username
+            or bool(lead.datos_viaje.get("telefono_alternativo"))
+            or telefono_aclarado_antes
+        )
 
     escalado = False
     respuesta_texto = ""
     forzado_ya = False
-    fallo_api = False
 
-    # El marcador de cache va en el último bloque REAL de la conversación.
-    # La nota interna se agrega DESPUÉS del marcador: cambia en cada turno y,
-    # si quedara dentro del prefijo cacheado, el turno siguiente no acertaría
-    # el cache.
-    messages = _marcar_ultimo_bloque_cacheable(historial)
-    if messages[-1]["role"] == "user":
-        messages[-1]["content"].append({"type": "text", "text": _nota_interna(lead, es_username)})
+    messages = historial
+    for _ in range(5):
+        messages = _marcar_ultimo_bloque_cacheable(messages)
 
-    for vuelta in range(5):
-        if vuelta:
-            messages = _marcar_ultimo_bloque_cacheable(messages)
-
-        try:
-            response = client.messages.create(
-                model=MODELO,
-                max_tokens=1024,
-                system=[
-                    {"type": "text", "text": _system_prompt()},
-                    {"type": "text", "text": f"Estado actual de este lead: {lead.estado}."},
-                    {
-                        "type": "text",
-                        "text": (
-                            "Este cliente escribe con un nombre de usuario de WhatsApp "
-                            "(no tienes su número visible)."
-                            if es_username
-                            else "Este cliente escribe desde un número de WhatsApp normal."
-                        ),
-                    },
-                ],
-                tools=TOOLS,
-                messages=messages,
-            )
-        except anthropic.APIError:
-            logger.exception("Lead %s: fallo de la API de Anthropic", lead_id)
-            fallo_api = True
-            break
+        response = client.messages.create(
+            model=MODELO,
+            max_tokens=300,
+            system=[
+                {"type": "text", "text": _system_prompt()},
+                {"type": "text", "text": f"Estado actual de este lead: {lead.estado}."},
+                {
+                    "type": "text",
+                    "text": (
+                        "Este cliente escribe con un nombre de usuario de WhatsApp "
+                        "(no tienes su número visible)."
+                        if es_username
+                        else "Este cliente escribe desde un número de WhatsApp normal."
+                    ),
+                },
+            ],
+            tools=TOOLS,
+            messages=messages,
+        )
 
         _log_uso_cache(lead_id, response)
-
-        if response.stop_reason == "max_tokens":
-            logger.warning("Lead %s: respuesta truncada por max_tokens", lead_id)
 
         texto_turno = "".join(b.text for b in response.content if b.type == "text").strip()
 
@@ -617,33 +482,29 @@ def responder_mensaje(lead_id):
             tool_use_blocks = [b for b in response.content if b.type == "tool_use"]
 
             # Ejecutamos PRIMERO todos los bloques que NO son
-            # escalar_a_asesor -- así, si el cliente dio un valor real en
-            # este mismo mensaje, lead.datos_viaje ya queda actualizado
-            # ANTES de evaluar si el escalamiento es válido.
+            # escalar_a_asesor -- así, si el cliente dio un valor real
+            # (presupuesto o teléfono) en este mismo mensaje, lead.datos_viaje
+            # ya queda actualizado ANTES de evaluar si el escalamiento es
+            # válido.
             resultados_por_bloque = {}
             for block in tool_use_blocks:
                 if block.name != "escalar_a_asesor":
-                    resultados_por_bloque[block.id] = _ejecutar_tool(lead, block.name, block.input, es_username)
+                    resultados_por_bloque[block.id] = _ejecutar_tool(lead, block.name, block.input)
 
-            bloque_escalar = next((b for b in tool_use_blocks if b.name == "escalar_a_asesor"), None)
-            faltantes = []
-            if bloque_escalar:
-                tipo = bloque_escalar.input.get("tipo") or "datos_completos"
-                urgente = tipo != "datos_completos"
-                faltantes = _faltantes_para_escalar(lead.datos_viaje, es_username, urgente)
+            requisitos_incompletos = not (presupuesto_listo() and telefono_listo())
+            intenta_escalar = any(b.name == "escalar_a_asesor" for b in tool_use_blocks)
 
-            if bloque_escalar and faltantes:
-                etiquetas = [_etiqueta(lead.datos_viaje, c) for c in faltantes]
+            if intenta_escalar and requisitos_incompletos:
+                faltantes = []
+                if not presupuesto_listo():
+                    faltantes.append("el presupuesto")
+                if not telefono_listo():
+                    faltantes.append("un número de WhatsApp alternativo (el cliente escribe con username)")
+
                 logger.warning(
-                    "Lead %s: Claude intentó escalar (%s) sin tener resuelto: %s -- rechazado.",
-                    lead.nombre, tipo, ", ".join(etiquetas),
+                    "Lead %s: Claude intentó escalar sin tener resuelto: %s -- rechazado.",
+                    lead.nombre, ", ".join(faltantes),
                 )
-
-                if urgente and not lead.datos_viaje.get("escalar_pendiente"):
-                    # El cliente ya pidió asesor/precio: en cuanto dé (o no dé)
-                    # su número se escala, sin hacer las demás preguntas.
-                    lead.datos_viaje = {**lead.datos_viaje, "escalar_pendiente": True}
-                    lead.save(update_fields=["datos_viaje", "updated_at"])
 
                 tool_results = []
                 for block in tool_use_blocks:
@@ -653,19 +514,19 @@ def responder_mensaje(lead_id):
                             "tool_use_id": block.id,
                             "content": json.dumps({
                                 "ok": False,
-                                "accion_requerida": (
-                                    f"Antes de pasar al asesor, pregúntale al cliente "
-                                    f"por {etiquetas[0]}, de forma natural y en un "
-                                    f"mensaje corto. No menciones al asesor ni esta "
-                                    f"indicación."
+                                "error": (
+                                    f"Todavía no puedes escalar -- primero debes "
+                                    f"preguntarle al cliente por {' y '.join(faltantes)}, "
+                                    f"y esperar su respuesta en un mensaje nuevo antes "
+                                    f"de escalar."
                                 ),
-                            }, ensure_ascii=False),
+                            }),
                         })
                     else:
                         tool_results.append({
                             "type": "tool_result",
                             "tool_use_id": block.id,
-                            "content": json.dumps(resultados_por_bloque[block.id], ensure_ascii=False),
+                            "content": json.dumps(resultados_por_bloque[block.id]),
                         })
 
                 messages = messages + [
@@ -680,12 +541,12 @@ def responder_mensaje(lead_id):
             tool_results = []
             for block in tool_use_blocks:
                 if block.name == "escalar_a_asesor":
-                    resultado = _ejecutar_tool(lead, block.name, block.input, es_username)
+                    resultado = _ejecutar_tool(lead, block.name, block.input)
                     escalado = True
                 else:
                     resultado = resultados_por_bloque[block.id]
                 tool_results.append(
-                    {"type": "tool_result", "tool_use_id": block.id, "content": json.dumps(resultado, ensure_ascii=False)}
+                    {"type": "tool_result", "tool_use_id": block.id, "content": json.dumps(resultado)}
                 )
 
             messages = messages + [
@@ -698,72 +559,64 @@ def responder_mensaje(lead_id):
         respuesta_texto = texto_turno or respuesta_texto
 
         d = lead.datos_viaje
-        nada_por_preguntar = (
-            activo
-            and (d.get("destino") or d.get("escalar_pendiente"))
-            and not _pendientes(d, es_username)
-        )
+        datos_completos = d.get("destino") and d.get("fecha_viaje") and d.get("num_personas")
 
-        if nada_por_preguntar and not escalado:
-            if not forzado_ya and response.content:
-                logger.warning(
-                    "Claude no escaló sin preguntas pendientes para lead %s -- forzando turno de escalamiento",
-                    lead.nombre,
-                )
-                forzado_ya = True
-                respuesta_texto = ""
-                messages = messages + [
-                    {"role": "assistant", "content": response.content},
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": (
-                                    "[nota interna del sistema] Ya no queda nada por "
-                                    "preguntar. Llama a escalar_a_asesor con tipo "
-                                    "datos_completos ahora mismo y responde solo con "
-                                    "la frase cálida de cierre y la despedida exacta "
-                                    "indicada en tus instrucciones."
-                                ),
-                            }
-                        ],
-                    },
-                ]
-                continue
+        if not escalado and not forzado_ya and lead.estado == Lead.Estado.EN_CONVERSACION \
+                and datos_completos and presupuesto_listo() and telefono_listo():
+            logger.warning(
+                "Claude no escaló con datos completos para lead %s -- forzando turno de escalamiento",
+                lead.nombre,
+            )
+            forzado_ya = True
+            messages = messages + [
+                {"role": "assistant", "content": response.content},
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": (
+                                "[sistema] Ya tienes toda la información necesaria. "
+                                "Debes llamar a escalar_a_asesor ahora mismo y "
+                                "responder solo con la despedida exacta indicada en "
+                                "tus instrucciones."
+                            ),
+                        }
+                    ],
+                },
+            ]
+            continue
 
-            # Ya forzamos una vez y Claude no cumplió. En vez de confiar en
-            # un segundo intento, ejecutamos el escalamiento nosotros mismos
-            # en código y sobreescribimos cualquier texto que haya generado.
+        if not escalado and forzado_ya and lead.estado == Lead.Estado.EN_CONVERSACION \
+                and datos_completos and presupuesto_listo() and telefono_listo():
+            # Ya forzamos una vez y Claude no cumplió (no llamó la
+            # herramienta, o inventó una respuesta rara en su lugar). En
+            # vez de confiar en un segundo intento, ejecutamos el
+            # escalamiento nosotros mismos en código y sobreescribimos
+            # cualquier texto que Claude haya generado.
             logger.error(
                 "Lead %s: Claude no llamó a escalar_a_asesor tras ser "
                 "forzado -- ejecutando el escalamiento directamente en "
                 "código.", lead.nombre,
             )
-            _ejecutar_tool(lead, "escalar_a_asesor", {"motivo": "forzado por sistema (Claude no cumplió)"}, es_username)
+            _ejecutar_tool(lead, "escalar_a_asesor", {"motivo": "forzado por sistema (Claude no cumplió)"})
             escalado = True
-            respuesta_texto = DESPEDIDA
+            respuesta_texto = "Un asesor de Lusso te contactará pronto para hablar de los detalles."
 
         break
     else:
         logger.warning("Tope de iteraciones de tool use alcanzado para lead %s", lead_id)
 
-    if not respuesta_texto:
-        if escalado:
-            respuesta_texto = DESPEDIDA
-        elif fallo_api:
-            respuesta_texto = MENSAJE_RESPALDO
-
-    # BANDERA: si el bot le prometió un asesor al cliente sin haber escalado,
-    # la promesa se cumple en código.
-    if activo and not escalado and not fallo_api and PROMESA_ASESOR.search(respuesta_texto):
-        logger.error("Lead %s: el bot prometió asesor sin escalar -- escalando en código", lead.nombre)
-        _ejecutar_tool(lead, "escalar_a_asesor", {"motivo": "promesa de asesor sin llamar la herramienta"}, es_username)
-        escalado = True
-
-    # Anotamos qué dato acaba de preguntar el bot, para no repetirlo nunca.
-    if activo and not escalado and not fallo_api:
-        _marcar_preguntas_hechas(lead, respuesta_texto, es_username)
+    # Si el bot está a punto de mandar una respuesta y ya tiene destino+
+    # fecha+personas pero todavía no presupuesto, aseguramos en código que
+    # presupuesto_preguntado quede en true -- sin depender de que Claude
+    # se acuerde de marcarlo en el mismo turno en que pregunta. Así, el
+    # PRÓXIMO mensaje del cliente siempre encuentra el estado correcto,
+    # sin importar si Claude olvidó la bandera esta vez.
+    d_final = lead.datos_viaje
+    datos_completos_final = d_final.get("destino") and d_final.get("fecha_viaje") and d_final.get("num_personas")
+    if datos_completos_final and not d_final.get("presupuesto") and not d_final.get("presupuesto_preguntado"):
+        _ejecutar_tool(lead, "registrar_datos_viaje", {"presupuesto_preguntado": True})
 
     if not respuesta_texto:
         logger.warning("Respuesta vacía de Claude para lead %s — no se envía nada", lead_id)
@@ -804,24 +657,13 @@ def _construir_historial(lead):
     return historial
 
 
-def _ejecutar_tool(lead, nombre, inputs, es_username=False):
+def _ejecutar_tool(lead, nombre, inputs):
     if nombre == "registrar_datos_viaje":
-        # Claude solo puede escribir los campos del viaje; el control de qué
-        # ya se preguntó lo lleva el código.
-        datos = {k: v for k, v in inputs.items() if v and k in CAMPOS_REGISTRABLES}
+        datos = {k: v for k, v in inputs.items() if v}
         lead.datos_viaje = {**lead.datos_viaje, **datos}
         lead.save(update_fields=["datos_viaje", "updated_at"])
         logger.info("Datos de viaje actualizados para %s: %s", lead.nombre, datos)
-        d = lead.datos_viaje
-        if d.get("destino") or d.get("escalar_pendiente"):
-            pendientes = [_etiqueta(d, c) for c in _pendientes(d, es_username)]
-        else:
-            pendientes = ["el destino"]
-        return {
-            "ok": True,
-            "datos_actuales": _datos_publicos(d),
-            "aun_puedes_preguntar_en_orden": pendientes,
-        }
+        return {"ok": True, "datos_actuales": lead.datos_viaje}
 
     if nombre == "escalar_a_asesor":
         logger.info("Escalando lead %s — motivo: %s", lead.nombre, inputs.get("motivo"))
@@ -898,18 +740,11 @@ def _post_escalamiento(lead):
                 asesor_tel,
                 "nuevo_lead_calificado",
                 [
-                    _limpiar_param(p) for p in [
-                        lead.nombre, link_whatsapp, destino,
-                        fecha_viaje, no_especifica, num_personas,
-                        presupuesto, notas,
-                    ]
+                    lead.nombre, link_whatsapp, destino,
+                    fecha_viaje, no_especifica, num_personas,
+                    presupuesto, notas,
                 ],
             )
             logger.info("Notificación de WhatsApp enviada al asesor para lead %s", lead.nombre)
         except Exception:
-            logger.exception("No se pudo notificar al asesor sobre el lead %s", lead.nombre)
-            # Que el fallo quede visible en el chat del portal, no solo en logs.
-            Mensaje.objects.create(
-                lead=lead, rol=Mensaje.Rol.SISTEMA,
-                contenido="⚠️ NO se pudo enviar la notificación al asesor. Revisar este lead manualmente.",
-            )
+            logger.exception("No se pudo notificar al asesor")
