@@ -111,6 +111,8 @@ Si el cliente menciona un país (europeo o no), ese país YA es el destino: reg�
 - **Aventura**: planes con actividades de adrenalina y naturaleza como eje central del viaje.
 - **Festivales**: viajes organizados alrededor de festivales y eventos culturales puntuales.
 - **Circuitos por el mundo**: recorridos de varios destinos en un solo viaje, para quienes quieren ver más de un lugar.
+- **Cruceros**: Lusso los gestiona a pedido, como un servicio adicional. NO hay rutas, fechas ni navieras fijas: el asesor arma la opción según lo que busque el cliente. Si preguntan qué cruceros o qué destinos de crucero hay, di justamente eso, sin nombrar rutas, regiones ni navieras.
+- **Cruceros**: Lusso los gestiona a pedido, como un servicio adicional. NO hay rutas, destinos, navieras ni fechas definidas en el catálogo. Si el cliente pregunta qué cruceros hay, a dónde van o qué incluyen, NO menciones ninguna ruta, región ni naviera: dile que el asesor le arma las opciones según lo que busca, y continúa con el dato que toque.
 
 ## Experiencias / Parques temáticos
 Lusso Travel también ofrece paquetes a parques temáticos internacionales, agrupados por marca:
@@ -476,6 +478,9 @@ def _nota_interna(lead, es_username, intencion=None):
     pendientes = _pendientes(d, es_username)
     if not d.get("destino") and not d.get("escalar_pendiente"):
         lineas.append(
+            "Si el cliente hizo una pregunta en este mensaje, respóndela primero en UNA "
+            "frase corta usando solo lo que está en el catálogo; si la respuesta no "
+            "está ahí, dile que el asesor se lo confirma (no inventes nada). "
             "Aún no hay destino. Si el cliente menciona un destino o una promo en "
             "este mensaje, regístralo y pregunta por la fecha del viaje. Si no, "
             "ayúdale a elegir con el catálogo. NO preguntes fecha, personas ni "
@@ -486,6 +491,9 @@ def _nota_interna(lead, es_username, intencion=None):
             "Datos que aún puedes preguntar, en este orden: "
             + "; ".join(_etiqueta(d, c) for c in pendientes) + ". "
             "Primero registra lo que el cliente haya dicho en este mensaje. "
+            "Si el cliente hizo una pregunta en este mensaje, respóndela primero en UNA "
+            "frase corta usando solo lo que está en el catálogo; si la respuesta no "
+            "está ahí, dile que el asesor se lo confirma (no inventes nada). "
             "Luego termina tu respuesta preguntando SOLO por el primero de esa "
             "lista que siga sin respuesta. Cualquier dato que no esté en la lista "
             "ya se tiene o ya se preguntó: NO vuelvas a preguntarlo. Si tras "
