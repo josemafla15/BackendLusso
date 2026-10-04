@@ -312,6 +312,48 @@ PATRON_FUGA = re.compile(
 )
 RESPUESTA_FIJA_CON_ASESOR = "¡Con gusto! Tu asesor te escribirá directamente para ayudarte con eso 😊"
 
+# Intenciones que escalan de inmediato. Se detectan en el mensaje del
+# cliente por código: si aparecen, el lead escala aunque Claude no lo haga.
+INTENCIONES_URGENTES = [
+    ("pregunta_precio", "preguntó por el precio", re.compile(
+        r"cu[aá]nto (vale|cuesta|sale|cobran|ser[ií]a|me sale|es el)|"
+        r"qu[eé] (precio|valor|costo)|\bprecios?\b|\bvalor(es)?\b|\bcostos?\b|\btarifas?\b|"
+        r"cotizaci[oó]n|cot[ií]za|a c[oó]mo|cu[aá]nto.{0,30}(viaje|paquete|plan|tour|promo)",
+        re.IGNORECASE)),
+    ("pide_humano", "pidió hablar con una persona", re.compile(
+        r"(hablar|comunicar|contactar).{0,25}(asesor|persona|humano|alguien|agente)|"
+        r"\b(un|una|el|la) (asesora?|persona real|humano|agente)\b|ll[aá]m(en|ame|enme)\b",
+        re.IGNORECASE)),
+    ("intencion_compra", "quiere reservar o comprar", re.compile(
+        r"(quiero|deseo|quisiera|necesito|vamos a) (reservar|comprar|pagar|separar|apartar)|"
+        r"c[oó]mo (reservo|compro|separo|aparto)|listo para (reservar|pagar)",
+        re.IGNORECASE)),
+]
+
+
+def _intencion_urgente(texto):
+    """(tipo, descripción) si el mensaje del cliente pide precio, una
+    persona o reservar; None si no."""
+    for tipo, descripcion, patron in INTENCIONES_URGENTES:
+        if patron.search(texto or ""):
+            return tipo, descripcion
+    return None
+
+
+def _quitar_preguntas(texto):
+    """Devuelve el texto hasta antes de la frase que contiene la primera
+    pregunta (se descarta esa frase completa y todo lo que sigue)."""
+    idx = texto.find("¿")
+    if idx == -1:
+        idx = texto.find("?")
+    if idx == -1:
+        return texto.strip()
+    cortes = [p + len(sep) for sep in (". ", "! ", "? ", "\n") if (p := texto.rfind(sep, 0, idx)) != -1]
+    # Si no hay una frase anterior completa, se corta justo en la pregunta.
+    inicio = max(cortes) if cortes else idx
+    return texto[:inicio].strip(" ,:;")
+
+
 # ── Cada dato se pregunta UNA sola vez (lo controla el código) ──────────────
 # Orden en que se preguntan los datos una vez hay destino. El destino no
 # tiene tope: sin destino el bot ofrece el catálogo y no avanza.
@@ -386,7 +428,7 @@ def _etiqueta(d, campo):
     return ETIQUETAS[campo]
 
 
-def _nota_interna(lead, es_username):
+def _nota_interna(lead, es_username, intencion=None):
     """Estado real del lead, para que Claude lo VEA en vez de deducirlo de
     la conversación. Va al final del último mensaje del cliente."""
     d = lead.datos_viaje
@@ -395,6 +437,16 @@ def _nota_interna(lead, es_username):
         f"Datos ya registrados: {json.dumps(_datos_publicos(d), ensure_ascii=False)}",
     ]
     if lead.estado != Lead.Estado.EN_CONVERSACION:
+        return "\n".join(lineas)
+
+    if intencion:
+        tipo, descripcion = intencion
+        lineas.append(
+            f"El cliente {descripcion}. Registra lo que haya dicho en este mensaje "
+            f"y llama a escalar_a_asesor con tipo {tipo} en este mismo turno. NO "
+            "hagas ninguna pregunta sobre el viaje: responde solo con la frase de "
+            "cierre y la despedida exacta."
+        )
         return "\n".join(lineas)
 
     pendientes = _pendientes(d, es_username)
@@ -476,13 +528,8 @@ def _asegurar_pregunta_correcta(lead, texto, es_username):
     if any(PATRON_PREGUNTA[c].search(preguntas) for c in pendientes):
         return texto
 
-    # Cortar desde donde empieza la primera pregunta.
-    corte = texto.find("¿")
-    if corte == -1:
-        fin = texto.find("?")
-        corte = max(texto.rfind(sep, 0, fin) for sep in (". ", "! ", "\n")) + 1
-    antes = texto[:corte].strip()
-    logger.warning("Lead %s: pregunta fuera de guion, se reemplaza: %r", lead.nombre, texto[corte:].strip())
+    antes = _quitar_preguntas(texto)
+    logger.warning("Lead %s: pregunta fuera de guion, se reemplaza: %r", lead.nombre, texto[len(antes):].strip())
     return f"{antes} {PREGUNTA_FIJA[pendientes[0]]}".strip()
 
 
@@ -631,9 +678,13 @@ def responder_mensaje(lead_id, avisar_fallo=True):
     # La nota interna se agrega DESPUÉS del marcador: cambia en cada turno y,
     # si quedara dentro del prefijo cacheado, el turno siguiente no acertaría
     # el cache.
+    intencion = None
+    if activo and historial[-1]["role"] == "user":
+        intencion = _intencion_urgente(historial[-1]["content"][-1]["text"])
+
     messages = _marcar_ultimo_bloque_cacheable(historial)
     if messages[-1]["role"] == "user":
-        messages[-1]["content"].append({"type": "text", "text": _nota_interna(lead, es_username)})
+        messages[-1]["content"].append({"type": "text", "text": _nota_interna(lead, es_username, intencion)})
 
     for vuelta in range(5):
         if vuelta:
@@ -837,6 +888,24 @@ def responder_mensaje(lead_id, avisar_fallo=True):
                 contenido=f"La IA no respondió. Se envió al cliente: «{MENSAJE_RESPALDO}». Reintentando en unos minutos.",
             )
         raise FalloAPI(f"Anthropic no respondió para el lead {lead_id}")
+
+    # URGENTE: el cliente preguntó precio, pidió una persona o quiere
+    # reservar. Si Claude no escaló, lo hace el código.
+    if intencion and not escalado:
+        d = lead.datos_viaje
+        antes = _quitar_preguntas(respuesta_texto)
+        if _faltantes_para_escalar(d, es_username, urgente=True):
+            # Cliente con username: falta su número para que el asesor lo contacte.
+            if not d.get("escalar_pendiente"):
+                lead.datos_viaje = {**d, "escalar_pendiente": True}
+                lead.save(update_fields=["datos_viaje", "updated_at"])
+            if not PATRON_PREGUNTA[CAMPO_TELEFONO].search(respuesta_texto):
+                respuesta_texto = f"{antes} {PREGUNTA_FIJA[CAMPO_TELEFONO]}".strip()
+        else:
+            logger.error("Lead %s: el cliente %s y Claude no escaló -- escalando en código", lead.nombre, intencion[1])
+            _ejecutar_tool(lead, "escalar_a_asesor", {"motivo": f"el cliente {intencion[1]}"}, es_username)
+            escalado = True
+            respuesta_texto = f"{antes} {DESPEDIDA}".strip()
 
     if escalado and not respuesta_texto:
         respuesta_texto = DESPEDIDA
