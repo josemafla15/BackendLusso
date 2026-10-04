@@ -165,7 +165,7 @@ prepara la información necesaria y escala.
 - No prometas disponibilidad ni fechas garantizadas.
 - Si el cliente ya está en proceso con un asesor (estado calificado o cotizado), responde dudas generales con gusto, pero para temas de su cotización o negociación indícale que su asesor le responde directamente.
 - NUNCA vuelvas a preguntar por destino, fechas, número de personas o presupuesto si el cliente ya los mencionó en cualquier punto anterior de la conversación, aunque haya sido de pasada.
-- Cualquier lugar que el cliente nombre ES el destino, tal cual lo dijo y al nivel que lo dijo: un país ("España"), un departamento o región ("Nariño", "el Eje Cafetero"), una ciudad, una isla o un parque. Regístralo de inmediato y sigue con el siguiente dato. Nunca pidas afinarlo, nunca preguntes qué parte quiere conocer, y nunca le ofrezcas el catálogo ni otros destinos a alguien que ya nombró un lugar.
+- Cualquier lugar que el cliente nombre ES el destino, tal cual lo dijo y al nivel que lo dijo: un país ("España"), un departamento o región ("Nariño", "el Eje Cafetero"), una ciudad, una isla o un parque. Lo mismo aplica si pide un crucero: "Crucero" (o "Crucero por el Caribe", como lo diga) ES el destino, igual que "Tour por Europa"; no le preguntes a dónde, por cuál ruta ni con qué naviera. Regístralo de inmediato y sigue con el siguiente dato. Nunca pidas afinarlo, nunca preguntes qué parte quiere conocer, y nunca le ofrezcas el catálogo ni otros destinos a alguien que ya nombró un lugar.
 - Todo lo que escribes lo lee el cliente directamente. Nunca narres tu razonamiento, nunca digas que te equivocaste, que tu mensaje anterior fue precipitado ni que vas a corregir algo. Si recibes un aviso del sistema o un error de una herramienta, simplemente responde al cliente con un mensaje natural, sin mencionar el aviso.
 
 # Si el lead ya está CALIFICADO o COTIZADO
@@ -255,7 +255,7 @@ TOOLS = [
             "properties": {
                 "destino": {
                     "type": "string",
-                    "description": "Cualquier lugar que el cliente haya nombrado, TAL CUAL lo dijo y al nivel que lo dijo: país ('México'), departamento o región ('Nariño'), ciudad, isla o parque. También una promo ('Promo San Andrés'). No lo cambies por algo más específico ni esperes a que lo precise. Si el cliente no ha nombrado ningún lugar ni promo, deja este campo vacío.",
+                    "description": "Cualquier lugar que el cliente haya nombrado, TAL CUAL lo dijo y al nivel que lo dijo: país ('México'), departamento o región ('Nariño'), ciudad, isla o parque. También una promo ('Promo San Andrés') o un tipo de viaje que el cliente pida como tal: un crucero ('Crucero', 'Crucero por el Caribe') o un tour ('Tour por Europa'). No lo cambies por algo más específico ni esperes a que lo precise. Si el cliente no ha nombrado ningún lugar ni promo, deja este campo vacío.",
                 },
                 "fecha_viaje": {
                     "type": "string",
@@ -295,6 +295,12 @@ class FalloAPI(Exception):
 
 
 DESPEDIDA = "Un asesor de Lusso te contactará pronto para hablar de los detalles."
+# Cuando el cliente pregunta el precio, el cierre explica por qué no se da
+# un valor en el chat. Texto fijo: cámbialo aquí si quieres otro tono.
+EXPLICACION_PRECIO = (
+    "El valor depende de varios factores, como las fechas, el número de "
+    "personas y el tipo de alojamiento."
+)
 MENSAJE_RESPALDO = "¡Dame un momentico! Ya te respondo 🙏"
 SALUDO = "¡Hola! 👋 Soy el asistente virtual de Lusso Travel."
 
@@ -338,6 +344,19 @@ def _intencion_urgente(texto):
         if patron.search(texto or ""):
             return tipo, descripcion
     return None
+
+
+def _cierre_precio(texto):
+    """Arma el mensaje de cierre cuando el cliente preguntó el precio: lo
+    cálido que haya escrito Claude + la explicación fija + la despedida.
+    Se descartan sus frases sobre precios o el asesor para no repetir."""
+    frases = re.split(r"(?<=[.!?])\s+", _quitar_preguntas(texto))
+    utiles = [
+        f for f in frases
+        if re.search(r"[a-záéíóúñ]", f, re.IGNORECASE)
+        and not re.search(r"precio|valor|cost|tarifa|cotiza|asesor", f, re.IGNORECASE)
+    ]
+    return " ".join(utiles + [EXPLICACION_PRECIO, DESPEDIDA])
 
 
 def _quitar_preguntas(texto):
@@ -447,6 +466,11 @@ def _nota_interna(lead, es_username, intencion=None):
             "hagas ninguna pregunta sobre el viaje: responde solo con la frase de "
             "cierre y la despedida exacta."
         )
+        if tipo == "pregunta_precio":
+            lineas.append(
+                "No des ningún precio ni rango, ni expliques de qué depende: el "
+                "sistema agrega esa explicación después de tu frase cálida."
+            )
         return "\n".join(lineas)
 
     pendientes = _pendientes(d, es_username)
@@ -907,6 +931,9 @@ def responder_mensaje(lead_id, avisar_fallo=True):
             escalado = True
             respuesta_texto = f"{antes} {DESPEDIDA}".strip()
 
+    if escalado and intencion and intencion[0] == "pregunta_precio":
+        respuesta_texto = _cierre_precio(respuesta_texto)
+
     if escalado and not respuesta_texto:
         respuesta_texto = DESPEDIDA
 
@@ -942,7 +969,7 @@ def responder_mensaje(lead_id, avisar_fallo=True):
 
     # SALUDO: el primer mensaje del bot siempre se presenta, lo escriba
     # Claude o no.
-    if respuesta_texto and es_primer_mensaje and "lusso" not in respuesta_texto.lower():
+    if respuesta_texto and es_primer_mensaje and not re.search(r"asistente|lusso travel", respuesta_texto, re.IGNORECASE):
         sin_hola = re.sub(r"^[\s¡]*(hola|buen[oa]s( d[ií]as| tardes| noches)?)[\s,.!👋😊]*", "", respuesta_texto, flags=re.IGNORECASE)
         respuesta_texto = f"{SALUDO}\n\n{sin_hola or respuesta_texto}"
 
