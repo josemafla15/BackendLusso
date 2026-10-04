@@ -163,7 +163,7 @@ insistir.
 solo los da el asesor. Si preguntan precio: explica que un asesor 
 prepara la información necesaria y escala.
 - NUNCA uses la frase "cotización a tu medida", "a tu medida", ni variantes similares en ningún mensaje.
-- No inventes información que no esté en el catálogo de arriba: si no sabes algo específico (hoteles exactos, horarios de vuelos, requisitos de visa), di que el asesor lo confirma en la cotización. Lo mismo aplica a cualquier pregunta que no puedas responder con el catálogo: NO intentes responderla, dile en una frase corta que el asesor se lo confirma, guarda la pregunta en notas con registrar_datos_viaje (sin borrar las notas anteriores) y continúa con el dato que toque.
+- No inventes información que no esté en el catálogo de arriba: si no sabes algo específico (hoteles exactos, horarios de vuelos, requisitos de visa), di que el asesor lo confirma en la cotización. Lo mismo aplica a cualquier pregunta que no puedas responder con el catálogo: NO intentes responderla ni des a entender que sí o que no (nada de "claro, sí se puede"): dile en una frase corta que el asesor se lo confirma, guarda la pregunta en notas con registrar_datos_viaje (sin borrar las notas anteriores) y continúa con el dato que toque.
 - No prometas disponibilidad ni fechas garantizadas.
 - Si el cliente ya está en proceso con un asesor (estado calificado o cotizado), responde dudas generales con gusto, pero para temas de su cotización o negociación indícale que su asesor le responde directamente.
 - NUNCA vuelvas a preguntar por destino, fechas, número de personas o presupuesto si el cliente ya los mencionó en cualquier punto anterior de la conversación, aunque haya sido de pasada.
@@ -361,6 +361,31 @@ def _cierre_precio(texto):
     return " ".join(utiles + [EXPLICACION_PRECIO, DESPEDIDA])
 
 
+# Voseo -> tuteo estándar. Lista explícita (no una regla general) porque
+# hay palabras correctas que terminan igual: "estás", "además", "podrás".
+VOSEO = {
+    "vos": "tú", "sos": "eres",
+    "pensás": "piensas", "querés": "quieres", "podés": "puedes", "tenés": "tienes",
+    "sabés": "sabes", "preferís": "prefieres", "venís": "vienes", "decís": "dices",
+    "viajás": "viajas", "buscás": "buscas", "necesitás": "necesitas", "deseás": "deseas",
+    "planeás": "planeas", "imaginás": "imaginas", "contás": "cuentas", "andás": "andas",
+    "llevás": "llevas", "esperás": "esperas",
+    "contame": "cuéntame", "decime": "dime", "escribime": "escríbeme", "avisame": "avísame",
+    "confirmame": "confírmame", "indicame": "indícame", "compartime": "compárteme",
+    "pasame": "pásame", "dejame": "déjame", "mirá": "mira", "fijate": "fíjate",
+    "esperá": "espera", "elegí": "elige", "vení": "ven", "tené": "ten", "pensá": "piensa",
+}
+PATRON_VOSEO = re.compile(r"(?<![\wáéíóúñ])(" + "|".join(VOSEO) + r")(?![\wáéíóúñ])", re.IGNORECASE)
+
+
+def _corregir_voseo(texto):
+    """Reemplaza formas de voseo por el tuteo estándar ("pensás" -> "piensas")."""
+    def cambiar(m):
+        nueva = VOSEO[m.group(1).lower()]
+        return nueva.capitalize() if m.group(1)[0].isupper() else nueva
+    return PATRON_VOSEO.sub(cambiar, texto)
+
+
 def _quitar_preguntas(texto):
     """Devuelve el texto hasta antes de la frase que contiene la primera
     pregunta (se descarta esa frase completa y todo lo que sigue)."""
@@ -480,7 +505,8 @@ def _nota_interna(lead, es_username, intencion=None):
         lineas.append(
             "Si el cliente hizo una pregunta en este mensaje, respóndela primero en UNA "
             "frase corta usando solo lo que está en el catálogo; si la respuesta no "
-            "está ahí, dile que el asesor se lo confirma (no inventes nada). "
+            "está ahí, dile solo que el asesor se lo confirma, SIN afirmar ni negar "
+            "nada (no digas 'sí se puede', 'claro' ni 'no se puede') y sin inventar. "
             "Aún no hay destino. Si el cliente menciona un destino o una promo en "
             "este mensaje, regístralo y pregunta por la fecha del viaje. Si no, "
             "ayúdale a elegir con el catálogo. NO preguntes fecha, personas ni "
@@ -493,7 +519,8 @@ def _nota_interna(lead, es_username, intencion=None):
             "Primero registra lo que el cliente haya dicho en este mensaje. "
             "Si el cliente hizo una pregunta en este mensaje, respóndela primero en UNA "
             "frase corta usando solo lo que está en el catálogo; si la respuesta no "
-            "está ahí, dile que el asesor se lo confirma (no inventes nada). "
+            "está ahí, dile solo que el asesor se lo confirma, SIN afirmar ni negar "
+            "nada (no digas 'sí se puede', 'claro' ni 'no se puede') y sin inventar. "
             "Luego termina tu respuesta preguntando SOLO por el primero de esa "
             "lista que siga sin respuesta. Cualquier dato que no esté en la lista "
             "ya se tiene o ya se preguntó: NO vuelvas a preguntarlo. Si tras "
@@ -974,6 +1001,13 @@ def responder_mensaje(lead_id, avisar_fallo=True):
     # Anotamos qué dato acaba de preguntar el bot, para no repetirlo nunca.
     if activo and not escalado:
         _marcar_preguntas_hechas(lead, respuesta_texto, es_username)
+
+    # VOSEO: el bot tutea con conjugación estándar, siempre.
+    if respuesta_texto:
+        corregido = _corregir_voseo(respuesta_texto)
+        if corregido != respuesta_texto:
+            logger.warning("Lead %s: voseo corregido en la respuesta: %r", lead.nombre, respuesta_texto)
+            respuesta_texto = corregido
 
     # SALUDO: el primer mensaje del bot siempre se presenta, lo escriba
     # Claude o no.
