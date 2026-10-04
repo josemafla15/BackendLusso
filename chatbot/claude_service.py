@@ -1148,7 +1148,10 @@ def _post_escalamiento(lead):
         try:
             enviar_plantilla(
                 asesor_tel,
-                "nuevo_lead_calificado",
+                # El nombre se puede cambiar desde Railway (variable
+                # PLANTILLA_ASESOR) sin desplegar. La plantilla debe tener
+                # las mismas 8 variables, en este orden.
+                os.environ.get("PLANTILLA_ASESOR", "nuevo_lead_calificado"),
                 [
                     _limpiar_param(p) for p in [
                         lead.nombre, link_whatsapp, destino,
