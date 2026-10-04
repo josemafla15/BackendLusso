@@ -428,7 +428,7 @@ PATRON_PREGUNTA = {
     "fecha_viaje": re.compile(r"cu[aá]ndo|fecha|\bmes\b|[eé]poca|temporada", re.IGNORECASE),
     "num_personas": re.compile(r"personas|viajer|acompa[ñn]|qui[eé]n|cu[aá]nt[oa]s (van|ir|son|ser|viaj)", re.IGNORECASE),
     "presupuesto": re.compile(r"presupuesto|invertir|gastar", re.IGNORECASE),
-    CAMPO_TELEFONO: re.compile(r"n[uú]mero|whatsapp|celular|tel[eé]fono", re.IGNORECASE),
+    CAMPO_TELEFONO: re.compile(r"n[uú]mero|whatsapp|celular|tel[eé]fono|escr[ií]b|comp[aá]rt", re.IGNORECASE),
 }
 # Preguntas que NO son de datos (elegir destino/parque/categoría del catálogo).
 PATRON_PREGUNTA_CATALOGO = re.compile(
@@ -589,6 +589,8 @@ def _asegurar_pregunta_correcta(lead, texto, es_username):
 
     antes = _quitar_preguntas(texto)
     logger.warning("Lead %s: pregunta fuera de guion, se reemplaza: %r", lead.nombre, texto[len(antes):].strip())
+    if antes and antes[-1].isalnum():
+        antes += "."  # que no quede una frase pegada a la pregunta sin puntuación
     return f"{antes} {PREGUNTA_FIJA[pendientes[0]]}".strip()
 
 

@@ -10,10 +10,11 @@ Comandos dentro del chat:
     /reset   -> borra la conversación y empieza de cero
     /salir   -> termina
 
-Ubicación: <tu_app>/management/commands/chat_bot.py
+Ubicación: chatbot/management/commands/chat_bot.py
 
-⚠️  Córrelo contra tu base de datos LOCAL o de desarrollo, nunca contra producción:
-    crea y borra leads de prueba.
+No envía nada por WhatsApp: los textos y la plantilla del asesor se imprimen
+aquí. Sí usa la API real de Haiku y la base de datos de tu .env (crea y borra
+un lead de prueba).
 """
 import json
 import os
@@ -27,9 +28,6 @@ from chatbot.claude_service import responder_mensaje
 
 PATCH_ENVIAR_TEXTO = "chatbot.whatsapp.enviar_texto"
 PATCH_ENVIAR_PLANTILLA = "chatbot.whatsapp.enviar_plantilla"
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 
 TEL_NUMERO = "570000000000"
 TEL_USERNAME = "usuario_prueba"
@@ -46,8 +44,13 @@ class Command(BaseCommand):
 
     def _nuevo_lead(self, telefono):
         Lead.objects.filter(telefono=telefono).delete()
+        # En producción el webhook deja el lead en EN_CONVERSACION; aquí lo
+        # hacemos igual, porque el escalamiento depende de ese estado.
         # Si tu modelo Lead exige más campos, agrégalos aquí.
-        return Lead.objects.create(nombre="Cliente Prueba", telefono=telefono)
+        return Lead.objects.create(
+            nombre="Cliente Prueba", telefono=telefono,
+            estado=Lead.Estado.EN_CONVERSACION,
+        )
 
     def handle(self, *args, **opts):
         telefono = TEL_USERNAME if opts["username"] else TEL_NUMERO
@@ -63,7 +66,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"     • {p!r}")
 
         self.stdout.write(self.style.SUCCESS(
-            f"Chat de prueba iniciado ({'username' if opts['username'] else 'número'}). "
+            f"Chat de prueba iniciado ({'username, sin número visible' if opts['username'] else 'número normal'}). "
             "Escribe /salir para terminar.\n"
         ))
 
@@ -98,7 +101,6 @@ class Command(BaseCommand):
                     responder_mensaje(lead.id)
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(f"💥 EXCEPCIÓN: {type(e).__name__}: {e}\n"))
-                    continue
 
                 lead.refresh_from_db()
                 if not enviados:
@@ -109,4 +111,5 @@ class Command(BaseCommand):
                     f"   [estado={lead.estado} | datos={json.dumps(lead.datos_viaje, ensure_ascii=False)}]\n"
                 ))
 
-        self.stdout.write("Chat terminado.")
+        Lead.objects.filter(id=lead.id).delete()
+        self.stdout.write("Chat terminado. Lead de prueba borrado.")
